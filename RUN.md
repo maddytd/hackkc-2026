@@ -101,6 +101,17 @@ Then start it:
 npm run dev
 ```
 
+## One-click launch (after the one-time setup above)
+
+Once the venv, `pip install`, `npm install`, ffmpeg, and the `.env` files are all done once,
+you don't need to type the run commands again. In VS Code:
+
+- Press **Ctrl/Cmd+Shift+P → "Tasks: Run Task" → "Larple: Start all"**, or just press
+  **Ctrl/Cmd+Shift+B**.
+
+This opens three dedicated terminals and starts the API, worker, and frontend together.
+(You can also run them individually: "Larple: API", "Larple: Worker", "Larple: Frontend".)
+
 ## 6. Play
 
 Open **http://localhost:5173**, register an alias, allow camera + mic, and play.

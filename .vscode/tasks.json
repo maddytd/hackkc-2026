@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Larple: API",
+      "type": "shell",
+      "command": "${workspaceFolder}/backend/.venv/bin/python",
+      "windows": { "command": "${workspaceFolder}/backend/.venv/Scripts/python.exe" },
+      "args": ["-m", "uvicorn", "app.main:app", "--port", "8000"],
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "presentation": { "group": "larple", "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Larple: Worker",
+      "type": "shell",
+      "command": "${workspaceFolder}/backend/.venv/bin/python",
+      "windows": { "command": "${workspaceFolder}/backend/.venv/Scripts/python.exe" },
+      "args": ["-m", "app.worker"],
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "presentation": { "group": "larple", "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Larple: Frontend",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "isBackground": true,
+      "presentation": { "group": "larple", "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Larple: Start all",
+      "dependsOn": ["Larple: API", "Larple: Worker", "Larple: Frontend"],
+      "dependsOrder": "parallel",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    }
+  ]
+}

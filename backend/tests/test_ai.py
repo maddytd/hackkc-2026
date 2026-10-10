@@ -169,7 +169,11 @@ def test_agent_to_provider_native_structured_output(monkeypatch, tmp_path):
 
         async def generate_content(self, **kwargs):
             captured.update(kwargs)
-            return SimpleNamespace(parsed=expected, text=expected.model_dump_json())
+            return SimpleNamespace(
+                parsed=expected,
+                text=expected.model_dump_json(),
+                candidates=[SimpleNamespace(finish_reason="STOP")],
+            )
 
     monkeypatch.setattr(
         "app.ai.client.genai.Client",
@@ -188,4 +192,33 @@ def test_agent_to_provider_native_structured_output(monkeypatch, tmp_path):
         types.GenerateContentConfig.model_validate(captured["config"]).system_instruction
         == "Rubric"
     )
+    assert (
+        types.GenerateContentConfig.model_validate(captured["config"]).response_json_schema
+        == Judgment.model_json_schema()
+    )
     assert captured["closed"] is True
+
+
+@pytest.mark.parametrize("finish_reason", ["MAX_TOKENS", "SAFETY"])
+def test_provider_rejects_incomplete_judgment(finish_reason):
+    import asyncio
+    from types import SimpleNamespace
+
+    from app.ai.video_model import VideoGeminiModel
+
+    async def generate_content(**kwargs):
+        return SimpleNamespace(candidates=[SimpleNamespace(finish_reason=finish_reason)], text="{}")
+
+    client = SimpleNamespace(
+        aio=SimpleNamespace(models=SimpleNamespace(generate_content=generate_content))
+    )
+    model = VideoGeminiModel(client=client, model_id="test-model")
+
+    async def run():
+        async for _ in model.structured_output(
+            Judgment, [{"role": "user", "content": [{"text": "test"}]}]
+        ):
+            raise AssertionError("Incomplete responses must not produce scores")
+
+    with pytest.raises(ValueError, match="did not complete"):
+        asyncio.run(run())

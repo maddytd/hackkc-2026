@@ -55,10 +55,10 @@ def available(settings):
 def challenge_for(db, settings, day):
     row = db.execute("SELECT * FROM challenges WHERE day=?", (day,)).fetchone()
     if not row:
-        questions = json.loads((ROOT / "content/questions.json").read_text())
+        questions = json.loads((ROOT / "content/questions.json").read_text(encoding="utf-8"))
         if len({q["id"] for q in questions}) < settings.max_replacements + 1:
             raise HTTPException(503, "Question pool is too small")
-        rubric = (ROOT / "app/ai/rubrics/question_answering_v1.md").read_text()
+        rubric = (ROOT / "app/ai/rubrics/question_answering_v1.md").read_text(encoding="utf-8")
         db.execute(
             "INSERT INTO challenges VALUES (?,?,?,?,?)",
             (day, json.dumps(questions), rubric, settings.gemini_model, settings.judge_mode),

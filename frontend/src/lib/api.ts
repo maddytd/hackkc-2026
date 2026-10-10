@@ -69,6 +69,8 @@ async function req<T>(path: string, opts: ReqOptions = {}): Promise<T> {
   if (res.status === 204) return null as T;
   const data = await res.json().catch(() => null);
   if (!res.ok) {
+    // A dead/expired session token is useless — drop it so the app can re-auth.
+    if (res.status === 401) setToken(null);
     const detail = (data && (data.detail as string)) || res.statusText;
     throw new ApiError(res.status, detail);
   }

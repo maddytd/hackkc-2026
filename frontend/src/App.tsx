@@ -53,7 +53,15 @@ export default function App() {
     setScreen('results');
   }, []);
 
-  const fail = useCallback((message: string) => {
+  const fail = useCallback((message: string, status?: number) => {
+    // An expired/invalid session isn't a failed attempt — send them back to sign in.
+    if (status === 401) {
+      setResult(null);
+      setRecordingUrl(null);
+      setAuthTick((t) => t + 1);
+      setScreen('auth');
+      return;
+    }
     setResult({ failure: message } as Attempt);
     setRecordingUrl(null);
     setScreen('results');

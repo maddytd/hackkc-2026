@@ -3,7 +3,7 @@ import Mic from '../components/Mic';
 import RecordingTimer from '../components/RecordingTimer';
 import { useRecorder } from '../hooks/useRecorder';
 import { useWebcam } from '../hooks/useWebcam';
-import { getAttempt, startAttempt, uploadRecording } from '../lib/api';
+import { ApiError, getAttempt, startAttempt, uploadRecording } from '../lib/api';
 import { RESPONSE_SECONDS } from '../lib/constants';
 import { saveRecording } from '../lib/recordingStore';
 import type { Attempt } from '../types/game';
@@ -32,7 +32,7 @@ export default function PlayPage({
   onError,
 }: {
   onFinish: (attempt: Attempt, recording: Blob | null) => void;
-  onError: (message: string) => void;
+  onError: (message: string, status?: number) => void;
 }) {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
@@ -58,7 +58,8 @@ export default function PlayPage({
       .catch((err) => {
         if (!cancelled) {
           setPhase('error');
-          onError(err?.message ?? "Couldn't start today's attempt.");
+          const status = err instanceof ApiError ? err.status : undefined;
+          onError(err?.message ?? "Couldn't start today's attempt.", status);
         }
       });
     return () => {
@@ -83,7 +84,8 @@ export default function PlayPage({
         onFinish(current, blob);
       } catch (err) {
         setPhase('error');
-        onError(err instanceof Error ? err.message : 'Upload failed.');
+        const status = err instanceof ApiError ? err.status : undefined;
+        onError(err instanceof Error ? err.message : 'Upload failed.', status);
       }
     },
     [attempt, onFinish, onError],

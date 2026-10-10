@@ -1,6 +1,6 @@
 # Proposed Repository Structure
 
-This is the planned implementation layout. Application files shown below have not yet been scaffolded.
+This is the target implementation layout. The backend is now implemented; see [backend setup](../backend/README.md). Some backend modules are consolidated in this MVP, and the frontend remains planned.
 
 
 ```text

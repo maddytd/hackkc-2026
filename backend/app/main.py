@@ -65,19 +65,28 @@ def create_app(settings=None):
     def me(player: Annotated[dict, Depends(authenticate)]):
         return {"id": player["id"], "alias": player["alias"]}
 
+    def demo_day(day):
+        # Switching days is a demo-only testing aid; real play is always locked to today.
+        return day.isoformat() if (day and settings.judge_mode == "demo") else None
+
     @app.post("/attempts")
-    def start(body: StartAttempt, player: Annotated[dict, Depends(authenticate)]):
+    def start(
+        body: StartAttempt,
+        player: Annotated[dict, Depends(authenticate)],
+        day: date | None = None,
+    ):
         rate_limit(settings, "start:" + player["id"], 10)
         if not body.consent_to_ai_processing:
             raise HTTPException(400, "Consent to external AI processing is required")
-        return attempts.start(settings, player["id"])
+        return attempts.start(settings, player["id"], demo_day(day))
 
     @app.get("/attempts/current")
-    def current(player: Annotated[dict, Depends(authenticate)]):
+    def current(player: Annotated[dict, Depends(authenticate)], day: date | None = None):
+        selected = demo_day(day) or attempts.day_at(time.time())
         with connect(settings) as db:
             row = db.execute(
                 "SELECT * FROM attempts WHERE player_id=? AND day=? AND status!='replaced'",
-                (player["id"], attempts.day_at(time.time())),
+                (player["id"], selected),
             ).fetchone()
             return attempts.public(db, row) if row else None
 

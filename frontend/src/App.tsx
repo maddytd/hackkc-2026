@@ -4,11 +4,26 @@ import StartScreen from './components/StartScreen';
 import LeaderboardPage from './pages/LeaderboardPage';
 import PlayPage from './pages/PlayPage';
 import ResultsPage from './pages/ResultsPage';
-import { apiConfigured, currentAttempt, isAuthed, logout, requestReplacement } from './lib/api';
+import {
+  apiConfigured,
+  currentAttempt,
+  getHealth,
+  isAuthed,
+  logout,
+  requestReplacement,
+} from './lib/api';
 import { clearRecording, loadRecording } from './lib/recordingStore';
 import type { Attempt } from './types/game';
 
 type Screen = 'start' | 'auth' | 'play' | 'results' | 'leaderboard';
+
+const todayUTC = () => new Date().toISOString().slice(0, 10);
+
+function addDaysISO(day: string, n: number): string {
+  const d = new Date(day + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
 
 function hasScore(a: Attempt | null): boolean {
   return !!a && (a.status === 'completed' || !!a.score);
@@ -19,12 +34,25 @@ export default function App() {
   const [result, setResult] = useState<Attempt | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [authTick, setAuthTick] = useState(0);
+  const [demoMode, setDemoMode] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(todayUTC());
   const authed = apiConfigured && isAuthed();
 
-  // On load (and after sign-in): if today's attempt is already scored, preload it and the
-  // locally-stored recording so the player can view their answer.
+  // Learn whether the backend is in demo mode (enables the day-switcher + longer countdown).
   useEffect(() => {
-    if (!authed) return;
+    let cancelled = false;
+    getHealth()
+      .then((h) => !cancelled && setDemoMode(h.judge_mode === 'demo'))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // In normal play, preload today's scored attempt so you can view your answer. Skipped in
+  // demo, where the day-switcher drives which prompt you load.
+  useEffect(() => {
+    if (!authed || demoMode) return;
     let cancelled = false;
     currentAttempt()
       .then(async (a) => {
@@ -33,19 +61,17 @@ export default function App() {
         const blob = await loadRecording(a.day);
         if (!cancelled && blob) setRecordingUrl(URL.createObjectURL(blob));
       })
-      .catch(() => {
-        /* not signed in / network — ignore */
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [authed, authTick]);
+  }, [authed, authTick, demoMode]);
 
   const beginPlay = useCallback(() => {
     if (apiConfigured && !isAuthed()) setScreen('auth');
-    else if (hasScore(result)) setScreen('results'); // already played today → view it
+    else if (!demoMode && hasScore(result)) setScreen('results');
     else setScreen('play');
-  }, [result]);
+  }, [result, demoMode]);
 
   const finish = useCallback((attempt: Attempt, recording: Blob | null) => {
     setResult(attempt);
@@ -54,7 +80,6 @@ export default function App() {
   }, []);
 
   const fail = useCallback((message: string, status?: number) => {
-    // An expired/invalid session isn't a failed attempt — send them back to sign in.
     if (status === 401) {
       setResult(null);
       setRecordingUrl(null);
@@ -87,6 +112,19 @@ export default function App() {
     setScreen('start');
   }, []);
 
+  const start = (
+    <StartScreen
+      onStart={beginPlay}
+      onLeaderboard={() => setScreen('leaderboard')}
+      onLogout={doLogout}
+      authed={authed}
+      demoMode={demoMode}
+      day={selectedDay}
+      onPrevDay={() => setSelectedDay((d) => addDaysISO(d, -1))}
+      onNextDay={() => setSelectedDay((d) => addDaysISO(d, 1))}
+    />
+  );
+
   switch (screen) {
     case 'auth':
       return (
@@ -99,7 +137,7 @@ export default function App() {
         />
       );
     case 'play':
-      return <PlayPage onFinish={finish} onError={fail} />;
+      return <PlayPage onFinish={finish} onError={fail} day={demoMode ? selectedDay : undefined} />;
     case 'results':
       return result ? (
         <ResultsPage
@@ -110,23 +148,13 @@ export default function App() {
           onRetry={retry}
         />
       ) : (
-        <StartScreen
-          onStart={beginPlay}
-          onLeaderboard={() => setScreen('leaderboard')}
-          onLogout={doLogout}
-          authed={authed}
-        />
+        start
       );
     case 'leaderboard':
-      return <LeaderboardPage onBack={() => setScreen('start')} />;
-    default:
       return (
-        <StartScreen
-          onStart={beginPlay}
-          onLeaderboard={() => setScreen('leaderboard')}
-          onLogout={doLogout}
-          authed={authed}
-        />
+        <LeaderboardPage onBack={() => setScreen('start')} day={demoMode ? selectedDay : undefined} />
       );
+    default:
+      return start;
   }
 }

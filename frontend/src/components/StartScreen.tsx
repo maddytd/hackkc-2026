@@ -8,11 +8,19 @@ export default function StartScreen({
   onLeaderboard,
   onLogout,
   authed,
+  demoMode,
+  day,
+  onPrevDay,
+  onNextDay,
 }: {
   onStart: () => void;
   onLeaderboard: () => void;
   onLogout: () => void;
   authed: boolean;
+  demoMode: boolean;
+  day: string;
+  onPrevDay: () => void;
+  onNextDay: () => void;
 }) {
   const [launching, setLaunching] = useState(false);
   const [showHow, setShowHow] = useState(false);
@@ -54,6 +62,21 @@ export default function StartScreen({
       <div className="mic-rig">
         <Mic />
       </div>
+
+      {demoMode && (
+        <div className="day-switch">
+          <span className="day-switch-label">DEMO · switch day to test prompts</span>
+          <div className="day-switch-controls">
+            <button onClick={onPrevDay} aria-label="Previous day">
+              ◀
+            </button>
+            <span className="day-switch-day">{day}</span>
+            <button onClick={onNextDay} aria-label="Next day">
+              ▶
+            </button>
+          </div>
+        </div>
+      )}
 
       {showHow && (
         <div className="howto" role="dialog" aria-label="How to play">

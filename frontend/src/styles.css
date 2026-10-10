@@ -187,6 +187,55 @@ body {
   transform: translateX(-50%) translateY(-48px) scale(0.9);
 }
 
+/* Demo-only day switcher */
+.day-switch {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #000;
+}
+
+.day-switch-label {
+  font-family: 'Anton', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--yellow);
+}
+
+.day-switch-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.day-switch-controls button {
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #111;
+  background: var(--yellow);
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.day-switch-day {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 118px;
+  text-align: center;
+}
+
 /* How-to panel */
 .howto {
   position: absolute;

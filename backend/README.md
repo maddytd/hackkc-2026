@@ -1,6 +1,6 @@
 # Larple backend
 
-FastAPI + SQLite backend for the daily question-answering game. Scores combine accuracy, performed confidence, and delivery equally. Python 3.11+ and FFmpeg (`ffprobe` on PATH) are required.
+FastAPI + SQLite backend for the daily question-answering game, with a Strands Agents judge using the Gemini model provider. Scores combine accuracy, performed confidence, and delivery equally. Python 3.11+ and FFmpeg (`ffprobe` on PATH) are required.
 
 ## Run locally
 
@@ -13,7 +13,7 @@ pip install -c requirements.lock -e '.[dev]'
 cp .env.example .env
 ```
 
-Install FFmpeg with `brew install ffmpeg` on macOS or your operating system's package manager. Set `LARP_GEMINI_API_KEY` in `.env`, select a video-capable `LARP_GEMINI_MODEL` available to your account, and change `LARP_INVITE_CODE` before inviting players.
+Install FFmpeg with `brew install ffmpeg` on macOS or your operating system's package manager. The backend reads `backend/.env` regardless of the process working directory. Set `LARP_GEMINI_API_KEY` there, select a video-capable `LARP_GEMINI_MODEL` available to your account, and change `LARP_INVITE_CODE` before inviting players.
 
 Start the API:
 
@@ -95,18 +95,23 @@ Poll the attempt endpoint approximately every two seconds while `queued` or `pro
 
 ## AI and cost controls
 
-Gemini receives the complete short video, including audio, plus the private question criteria. Its structured response is validated as integer ratings from 0 through 10. The server converts ratings to points and calculates the average. Rubric text explicitly treats video content as untrusted and separates accuracy from confidence; this reduces but does not eliminate judge manipulation.
+The judge is a fresh Strands `Agent` for each submission, using `GeminiModel` with the competition day’s saved model and rubric. Gemini is selected explicitly, so AWS credentials and Amazon Bedrock are not required. The agent has no external tools, shared conversation memory, or stdout callback. Its native structured-output call returns the existing `Judgment` schema. A small `VideoGeminiModel` subclass maps MP4/WebM content to Gemini video bytes because some Strands releases omit video handling in the provider; it preserves the video audio track. The adapter also uses Gemini’s `response_json_schema` field so the strict Pydantic schema is accepted without dropping validation rules.
+
+Gemini receives the complete short video, including audio, plus the private question criteria. Its structured response is validated as integer ratings from 0 through 10. The server converts ratings to points and calculates the average. Provider retries are disabled so the persistent worker owns the retry budget; the entire agent call has a 100-second deadline, shorter than the worker lease. Rubric text explicitly treats video content as untrusted and separates accuracy from confidence; this reduces but does not eliminate judge manipulation.
 
 `LARP_MAX_DAILY_JOBS` caps accepted jobs by UTC upload date. With three maximum judge tries, each accepted job can make at most three provider calls, including attempts interrupted by worker crashes. This is a usage cap, **not a dollar-denominated billing limit**; also set provider-side quotas/budget alerts. Existing jobs can be processed on later days. New starts are blocked when today's accepted-job cap is reached, although competing uploads may fill capacity after a prompt was revealed.
 
 The sample pool uses six comparable interview/opinion questions with explicit evaluation criteria. Add verified reference answers for factual questions. Changes to content or the rubric take effect on the next competition day.
 
-Provider documentation:
+Agent and provider documentation:
+
+- [Strands Python quickstart](https://strandsagents.com/docs/user-guide/sdk/quickstart/python/)
+- [Strands Gemini provider](https://strandsagents.com/docs/user-guide/sdk/model-providers/google/)
 
 - [Video inputs](https://ai.google.dev/gemini-api/docs/generate-content/video-understanding)
 - [Structured output](https://ai.google.dev/gemini-api/docs/generate-content/structured-output)
 
-The provider adapter is covered with simulated API responses. A live model evaluation needs your key and a representative browser clip; no paid API call is made by the test suite. Video sampling and model behavior may miss subtle gestures. Confirm model availability, costs, and Google's retention policy before using participant recordings.
+The agent adapter is tested with simulated responses, including its video inputs, private rubric, retry configuration, and failure propagation. A live model evaluation needs your key and a representative browser clip; no paid API call is made by the test suite. Video sampling and model behavior may miss subtle gestures. Confirm model availability, costs, and Google's retention policy before using participant recordings.
 
 ## Deploy
 
@@ -116,7 +121,7 @@ From the repository root:
 docker compose up --build
 ```
 
-Set values in `backend/.env` first. API and worker share the same persistent volume and configuration. Put the API behind HTTPS and set `LARP_CORS_ORIGINS` to the actual frontend origin. The supplied container is a single-host deployment; do not share SQLite over a network filesystem. Readiness for gameplay additionally requires a running worker, ffprobe, a working provider key, and available provider quota; `/health` alone is only process liveness.
+Set values in `backend/.env` first. This file is gitignored and excluded from Docker image builds; Compose injects its values at runtime. Commit only the blank `.env.example`, never a populated `.env`. API and worker share the same persistent volume and configuration. Put the API behind HTTPS and set `LARP_CORS_ORIGINS` to the actual frontend origin. The supplied container is a single-host deployment; do not share SQLite over a network filesystem. Readiness for gameplay additionally requires a running worker, ffprobe, a working provider key, and available provider quota; `/health` alone is only process liveness.
 
 An invite code limits open registration but does not establish one human per account. Use event registration or a verified identity provider before treating the leaderboard as cheat-resistant. The API rate-limits authentication and state-changing operations; add reverse-proxy body size, connection, and public read limits when exposed to the internet. Trust forwarded IP headers only from your own proxy.
 

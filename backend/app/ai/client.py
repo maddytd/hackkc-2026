@@ -1,11 +1,62 @@
-import base64
-import json
+"""Strands judging agent using Gemini's native multimodal structured output."""
+
+import asyncio
 from pathlib import Path
-from urllib.parse import quote
 
-import httpx
+from google import genai
+from strands import Agent
 
+from app.ai.video_model import VideoGeminiModel
 from app.schemas import Judgment
+
+
+async def _judge_with_agent(settings, attempt, challenge):
+    formats = {"video/webm": "webm", "video/mp4": "mp4"}
+    if attempt["mime"] not in formats:
+        raise ValueError("Unsupported recording type")
+    api_key = settings.gemini_api_key.get_secret_value()
+    if not api_key:
+        raise ValueError("Gemini API key is not configured")
+
+    client = genai.Client(
+        api_key=api_key,
+        http_options={
+            "timeout": 90_000,
+            # The persistent worker owns retries and enforces the call budget.
+            "retry_options": {"attempts": 1},
+        },
+    )
+    try:
+        model = VideoGeminiModel(
+            client=client,
+            model_id=challenge["model"],
+            params={"temperature": 0, "max_output_tokens": 4096},
+        )
+        agent = Agent(
+            model=model,
+            system_prompt=challenge["rubric"],
+            tools=[],
+            callback_handler=None,
+        )
+        prompt = [
+            {"text": "Question and private reference guide:\n" + attempt["question"]},
+            {
+                "video": {
+                    "format": formats[attempt["mime"]],
+                    "source": {"bytes": Path(attempt["media_path"]).read_bytes()},
+                }
+            },
+        ]
+        # The provider-native path makes one call, without a tool loop or shared history.
+        async with asyncio.timeout(100):
+            result = await agent.structured_output_async(Judgment, prompt)
+        return Judgment.model_validate(result)
+    finally:
+        # Strands leaves injected clients open; close both transports even on failure.
+        try:
+            await client.aio.aclose()
+        finally:
+            client.close()
 
 
 def judge(settings, attempt, challenge):
@@ -19,38 +70,4 @@ def judge(settings, attempt, challenge):
                 for name in ("accuracy", "confidence", "delivery")
             }
         )
-    media = base64.b64encode(Path(attempt["media_path"]).read_bytes()).decode()
-    body = {
-        "systemInstruction": {"parts": [{"text": challenge["rubric"]}]},
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {"text": "Question and private reference guide:\n" + attempt["question"]},
-                    {"inlineData": {"mimeType": attempt["mime"], "data": media}},
-                ],
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0,
-            "maxOutputTokens": 4096,
-            "responseMimeType": "application/json",
-            "responseJsonSchema": Judgment.model_json_schema(),
-        },
-    }
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        + quote(challenge["model"], safe="")
-        + ":generateContent"
-    )
-    with httpx.Client(timeout=httpx.Timeout(90, connect=10)) as client:
-        response = client.post(url, headers={"x-goog-api-key": settings.gemini_api_key}, json=body)
-        response.raise_for_status()
-    data = response.json()
-    candidate = data["candidates"][0]
-    if candidate.get("finishReason") != "STOP":
-        raise ValueError("Judge did not complete a valid response")
-    text = "".join(
-        p.get("text", "") for p in candidate["content"]["parts"] if not p.get("thought", False)
-    )
-    return Judgment.model_validate(json.loads(text))
+    return asyncio.run(_judge_with_agent(settings, attempt, challenge))

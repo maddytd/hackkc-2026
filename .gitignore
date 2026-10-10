@@ -221,3 +221,6 @@ __marimo__/
 
 # Larple runtime data
 backend/storage/
+
+# The Python "lib/" rule above also matches the frontend source dir; keep it tracked.
+!frontend/src/lib/

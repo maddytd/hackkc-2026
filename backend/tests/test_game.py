@@ -35,13 +35,13 @@ def test_full_flow_and_duplicate_requests(setup):
     assert "media_path" not in json.dumps(result)
 
 
-def test_failed_upload_new_question_and_limit(setup):
+def test_failed_upload_same_prompt_and_limit(setup):
     client, settings, headers = setup
-    seen = set()
     attempt = start(client, headers)
+    qid = attempt["question"]["id"]
     for i in range(4):
-        assert attempt["question"]["id"] not in seen
-        seen.add(attempt["question"]["id"])
+        # The daily prompt is shared, so every retry keeps the same question.
+        assert attempt["question"]["id"] == qid
         aid = attempt["id"]
         assert upload(client, headers, aid, b"").status_code == 422
         replacement = client.post(f"/attempts/{aid}/replacement", headers=headers)

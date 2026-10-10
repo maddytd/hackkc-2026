@@ -1,5 +1,5 @@
+import hashlib
 import json
-import secrets
 import shutil
 import time
 import uuid
@@ -55,10 +55,10 @@ def available(settings):
 def challenge_for(db, settings, day):
     row = db.execute("SELECT * FROM challenges WHERE day=?", (day,)).fetchone()
     if not row:
-        questions = json.loads((ROOT / "content/questions.json").read_text())
+        questions = json.loads((ROOT / "content/questions.json").read_text(encoding="utf-8"))
         if len({q["id"] for q in questions}) < settings.max_replacements + 1:
             raise HTTPException(503, "Question pool is too small")
-        rubric = (ROOT / "app/ai/rubrics/question_answering_v1.md").read_text()
+        rubric = (ROOT / "app/ai/rubrics/question_answering_v1.md").read_text(encoding="utf-8")
         db.execute(
             "INSERT INTO challenges VALUES (?,?,?,?,?)",
             (day, json.dumps(questions), rubric, settings.gemini_model, settings.judge_mode),
@@ -69,16 +69,15 @@ def challenge_for(db, settings, day):
     return row
 
 
+def daily_question(questions, day):
+    """One deterministic prompt per day, shared by every player (Wordle-style)."""
+    index = int(hashlib.sha256(day.encode()).hexdigest(), 16) % len(questions)
+    return questions[index]
+
+
 def insert_attempt(db, settings, player_id, day, challenge, previous=None):
-    used = {
-        json.loads(r["question"])["id"]
-        for r in db.execute(
-            "SELECT question FROM attempts WHERE player_id=? AND day=?", (player_id, day)
-        )
-    }
-    choices = [q for q in json.loads(challenge["questions"]) if q["id"] not in used]
-    if not choices:
-        raise HTTPException(409, "No replacement questions remain")
+    # Every attempt that day uses the same rotating prompt, including replacements.
+    question = daily_question(json.loads(challenge["questions"]), day)
     now = time.time()
     aid = str(uuid.uuid4())
     db.execute(
@@ -88,7 +87,7 @@ def insert_attempt(db, settings, player_id, day, challenge, previous=None):
             aid,
             player_id,
             day,
-            json.dumps(secrets.choice(choices)),
+            json.dumps(question),
             now,
             now + settings.recording_seconds + settings.upload_grace_seconds,
             previous,

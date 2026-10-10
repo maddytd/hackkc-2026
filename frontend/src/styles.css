@@ -52,6 +52,27 @@ body {
   transform: translateY(-2px) scale(1.03);
 }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 20px 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.auth-card {
+  max-height: 94dvh;
+  overflow: auto;
+}
+
 .btn--play {
   background: var(--yellow);
   color: #111;

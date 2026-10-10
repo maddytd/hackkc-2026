@@ -3,12 +3,13 @@ import Mic from '../components/Mic';
 import RecordingTimer from '../components/RecordingTimer';
 import { useRecorder } from '../hooks/useRecorder';
 import { useWebcam } from '../hooks/useWebcam';
-import { ApiError, getAttempt, startAttempt, uploadRecording } from '../lib/api';
+import { ApiError, apiConfigured, getAttempt, startAttempt, uploadRecording } from '../lib/api';
 import { RESPONSE_SECONDS } from '../lib/constants';
 import { saveRecording } from '../lib/recordingStore';
 import type { Attempt } from '../types/game';
 
 type Phase =
+  | 'prepare'
   | 'loading'
   | 'getready'
   | 'recording'
@@ -37,24 +38,38 @@ export default function PlayPage({
   day?: string;
 }) {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
-  const [phase, setPhase] = useState<Phase>('loading');
+  const [phase, setPhase] = useState<Phase>('prepare');
+  const [consented, setConsented] = useState(false);
+  const [cameraEnabled, setCameraEnabled] = useState(false);
   const [count, setCount] = useState(3);
   const [elapsed, setElapsed] = useState(0);
   const startedAt = useRef(0);
-  const { videoRef, state: camState, stream } = useWebcam(true);
+  const { videoRef, state: camState, stream } = useWebcam(cameraEnabled);
   const recorder = useRecorder();
 
   // Load today's attempt.
   useEffect(() => {
+    if (camState !== 'live') return;
     let cancelled = false;
     startAttempt(day)
-      .then((a) => {
+      .then(async (a) => {
         if (cancelled) return;
-        if (a.status === 'completed' || a.score) {
+        if (TERMINAL.has(a.status) || a.score) {
           onFinish(a, null); // already played today
           return;
         }
+        if (a.status === 'queued' || a.status === 'processing' || a.status === 'uploading') {
+          setPhase('processing');
+          while (!cancelled && !TERMINAL.has(a.status)) {
+            await new Promise((r) => setTimeout(r, 2000));
+            if (cancelled) return;
+            a = await getAttempt(a.id);
+          }
+          if (!cancelled) onFinish(a, null);
+          return;
+        }
         setAttempt(a);
+        setCount(a.demo ? 10 : 3);
         setPhase('getready');
       })
       .catch((err) => {
@@ -67,16 +82,17 @@ export default function PlayPage({
     return () => {
       cancelled = true;
     };
-  }, [onError, onFinish, day]);
+  }, [camState, onError, onFinish, day]);
 
   // Upload the recording, then poll until the judge finishes.
   const finishRecording = useCallback(
     async (blob: Blob) => {
       if (!attempt) return;
       // Keep the recording in the browser so it can be viewed back today.
-      await saveRecording(attempt.day, blob);
       setPhase('uploading');
       try {
+        // Browser storage can be unavailable; that must not discard the answer.
+        await saveRecording(attempt.day, blob).catch(() => {});
         let current = await uploadRecording(attempt.id, blob);
         setPhase('processing');
         while (!TERMINAL.has(current.status)) {
@@ -93,26 +109,27 @@ export default function PlayPage({
     [attempt, onFinish, onError],
   );
 
-  // Get-ready countdown, then start recording (also gives the camera a moment to warm up).
-  // Demo mode uses a longer 10s lead-in to make testing easier.
+  // Demo mode keeps its 10s lead-in; live judging uses a 3s countdown.
   useEffect(() => {
-    if (phase !== 'getready') return;
-    setCount(attempt?.demo ? 10 : 3);
-    const id = window.setInterval(() => {
-      setCount((c) => {
-        if (c <= 1) {
-          window.clearInterval(id);
-          if (stream) recorder.start(stream);
-          startedAt.current = performance.now();
-          setElapsed(0);
-          setPhase('recording');
-          return 0;
+    if (phase !== 'getready' || !stream) return;
+    const id = window.setTimeout(() => {
+      if (count <= 1) {
+        try {
+          recorder.start(stream);
+        } catch (err) {
+          onError(err instanceof Error ? err.message : 'Unable to start recording.');
+          return;
         }
-        return c - 1;
-      });
+        startedAt.current = performance.now();
+        setElapsed(0);
+        setPhase('recording');
+        setCount(0);
+      } else {
+        setCount(count - 1);
+      }
     }, 1000);
-    return () => window.clearInterval(id);
-  }, [phase, stream, recorder, attempt]);
+    return () => window.clearTimeout(id);
+  }, [phase, count, stream, recorder, onError]);
 
   // 30-second recording window.
   useEffect(() => {
@@ -124,6 +141,7 @@ export default function PlayPage({
         window.clearInterval(id);
         if (!stopped) {
           stopped = true;
+          setPhase('uploading');
           setElapsed(RESPONSE_SECONDS);
           recorder.stop().then(finishRecording);
         }
@@ -153,6 +171,25 @@ export default function PlayPage({
       <div className="floor" />
 
       <Mic className="rig-mic rig-mic--top" />
+
+      {phase === 'prepare' && (
+        <div className="howto">
+          <div className="howto-card">
+            <h2>READY TO ANSWER?</h2>
+            <p className="notice">Allow your camera and microphone. Then you’ll see today’s question and have 30 seconds to answer.</p>
+            <label className="consent-label">
+              <input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} />
+              <span>{apiConfigured
+                ? 'I agree to send my video and audio to Google Gemini for AI scoring. A replay is also saved in this browser.'
+                : 'I agree to record video and audio for this demo. Scoring is simulated and the replay stays in this browser.'}</span>
+            </label>
+            <button className="btn btn--play" disabled={!consented} onClick={() => {
+              setPhase('loading');
+              setCameraEnabled(true);
+            }}>ENABLE CAMERA & START</button>
+          </div>
+        </div>
+      )}
 
       {attempt && (
         <div className="prompt-bar">

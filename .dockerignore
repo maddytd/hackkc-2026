@@ -1,8 +1,16 @@
 .git
+**/.DS_Store
 **/.venv
 **/__pycache__
 **/.pytest_cache
 **/.ruff_cache
 **/*.egg-info
 **/.env
+**/.env.*
+**/node_modules
+**/dist
+**/*.log
 backend/storage
+.local-tools
+.local-run
+LOCAL_TEST.md

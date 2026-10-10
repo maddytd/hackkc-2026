@@ -1,0 +1,23 @@
+{$SITE_ADDRESS} {
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(self), microphone=(self), geolocation=()"
+		X-Frame-Options DENY
+	}
+
+	handle_path /api/* {
+		request_body {
+			max_size 12MiB
+		}
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		header Cache-Control "no-cache"
+		file_server
+	}
+}

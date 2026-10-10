@@ -1,0 +1,15 @@
+name: Deployment checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  docker-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and test portable deployment
+        run: ./scripts/smoke_deployment.sh

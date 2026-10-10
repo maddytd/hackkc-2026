@@ -3,8 +3,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /srv/backend
-COPY backend/ .
-RUN pip install --no-cache-dir -c requirements.lock -e . \
+COPY backend/pyproject.toml backend/requirements.lock ./
+COPY backend/app ./app
+COPY backend/content ./content
+RUN pip install --no-cache-dir -c requirements.lock . \
     && useradd --create-home larple \
     && mkdir -p /data/recordings && chown -R larple:larple /data
 USER larple

@@ -86,11 +86,11 @@ export interface Session {
   expires_at: number;
 }
 
-export async function register(alias: string, password: string): Promise<Session> {
+export async function register(alias: string, password: string, inviteCode: string): Promise<Session> {
   const s = await req<Session>('/auth/register', {
     method: 'POST',
     auth: false,
-    body: { alias, password },
+    body: { alias, password, invite_code: inviteCode },
   });
   setToken(s.access_token);
   return s;

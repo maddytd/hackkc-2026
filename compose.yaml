@@ -1,0 +1,26 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: backend/.env
+    environment:
+      LARP_STORAGE_DIR: /data
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - game-data:/data
+    restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: backend/.env
+    environment:
+      LARP_STORAGE_DIR: /data
+    command: ["python", "-m", "app.worker"]
+    volumes:
+      - game-data:/data
+    restart: unless-stopped
+volumes:
+  game-data:

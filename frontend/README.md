@@ -25,9 +25,9 @@ cp .env.example .env.local
 The backend's default CORS already allows `http://localhost:5173`. See `../backend/README.md`
 to start the API and worker (use `LARP_JUDGE_MODE=demo` to run without a Gemini key).
 
-With `VITE_API_URL` set, the app uses the real endpoints: register/login (invite code),
-start today's attempt, record 30s, upload the raw video Blob, poll until the judge finishes,
-then show the score and leaderboard.
+With `VITE_API_URL` set, the app uses the real endpoints: register/login, start today's
+attempt, record 30s, upload the raw video Blob, poll until the judge finishes, then show
+the score and leaderboard.
 
 ## How it connects
 

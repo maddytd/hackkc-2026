@@ -1,0 +1,15 @@
+# Optional, temporary public HTTPS URL. Use with compose.production.yaml and
+# the loopback-only values in deploy/.env.preview.example.
+services:
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: [tunnel, --no-autoupdate, --protocol, http2, --url, 'http://web:80']
+    depends_on:
+      web:
+        condition: service_started
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

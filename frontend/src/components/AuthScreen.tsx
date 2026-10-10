@@ -6,6 +6,7 @@ export default function AuthScreen({ onAuthed, onBack }: { onAuthed: () => void;
   const [mode, setMode] = useState<'login' | 'register'>('register');
   const [alias, setAlias] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -14,7 +15,7 @@ export default function AuthScreen({ onAuthed, onBack }: { onAuthed: () => void;
     setError(null);
     setBusy(true);
     try {
-      if (mode === 'register') await register(alias, password);
+      if (mode === 'register') await register(alias, password, inviteCode);
       else await login(alias, password);
       onAuthed();
     } catch (err) {
@@ -55,6 +56,17 @@ export default function AuthScreen({ onAuthed, onBack }: { onAuthed: () => void;
             required
           />
         </label>
+        {mode === 'register' && (
+          <label>
+            Invite code
+            <input
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              autoComplete="off"
+              maxLength={256}
+            />
+          </label>
+        )}
         {error && <p className="auth-error">{error}</p>}
 
         <button className="btn btn--play" type="submit" disabled={busy}>

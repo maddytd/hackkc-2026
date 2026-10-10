@@ -30,9 +30,11 @@ const TERMINAL = new Set(['completed', 'judge_failed', 'upload_failed', 'expired
 export default function PlayPage({
   onFinish,
   onError,
+  day,
 }: {
   onFinish: (attempt: Attempt, recording: Blob | null) => void;
   onError: (message: string, status?: number) => void;
+  day?: string;
 }) {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
@@ -45,7 +47,7 @@ export default function PlayPage({
   // Load today's attempt.
   useEffect(() => {
     let cancelled = false;
-    startAttempt()
+    startAttempt(day)
       .then((a) => {
         if (cancelled) return;
         if (a.status === 'completed' || a.score) {
@@ -65,7 +67,7 @@ export default function PlayPage({
     return () => {
       cancelled = true;
     };
-  }, [onError, onFinish]);
+  }, [onError, onFinish, day]);
 
   // Upload the recording, then poll until the judge finishes.
   const finishRecording = useCallback(
@@ -91,10 +93,11 @@ export default function PlayPage({
     [attempt, onFinish, onError],
   );
 
-  // 3-2-1 get-ready, then start recording (also gives the camera a moment to warm up).
+  // Get-ready countdown, then start recording (also gives the camera a moment to warm up).
+  // Demo mode uses a longer 10s lead-in to make testing easier.
   useEffect(() => {
     if (phase !== 'getready') return;
-    setCount(3);
+    setCount(attempt?.demo ? 10 : 3);
     const id = window.setInterval(() => {
       setCount((c) => {
         if (c <= 1) {
@@ -109,7 +112,7 @@ export default function PlayPage({
       });
     }, 1000);
     return () => window.clearInterval(id);
-  }, [phase, stream, recorder]);
+  }, [phase, stream, recorder, attempt]);
 
   // 30-second recording window.
   useEffect(() => {

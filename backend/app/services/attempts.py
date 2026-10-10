@@ -96,9 +96,9 @@ def insert_attempt(db, settings, player_id, day, challenge, previous=None):
     return public(db, owned(db, aid, player_id))
 
 
-def start(settings, player_id):
-    now = time.time()
-    day = day_at(now)
+def start(settings, player_id, day=None):
+    # `day` override is only passed by the demo day-switcher; normal play uses today.
+    day = day or day_at(time.time())
     with connect(settings, write=True) as db:
         row = db.execute(
             "SELECT * FROM attempts WHERE player_id=? AND day=? AND status!='replaced'",

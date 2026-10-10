@@ -2,19 +2,19 @@ import { useEffect, useState } from 'react';
 import { getLeaderboard } from '../lib/api';
 import type { Leaderboard } from '../types/game';
 
-export default function LeaderboardPage({ onBack }: { onBack: () => void }) {
+export default function LeaderboardPage({ onBack, day }: { onBack: () => void; day?: string }) {
   const [board, setBoard] = useState<Leaderboard | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getLeaderboard()
+    getLeaderboard(day)
       .then((b) => !cancelled && setBoard(b))
       .catch((err) => !cancelled && setError(err?.message ?? 'Could not load the leaderboard.'));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [day]);
 
   return (
     <main className="results">

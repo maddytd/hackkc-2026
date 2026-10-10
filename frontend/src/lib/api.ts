@@ -119,19 +119,26 @@ export async function logout(): Promise<void> {
 
 // --- game ---
 
-// POST /attempts — start or recover today's attempt (requires consent + auth).
-export async function startAttempt(): Promise<Attempt> {
-  if (!API_URL) return mockAttempt();
-  return req<Attempt>('/attempts', {
+// GET /health — process status + judging mode (used to show demo-only controls).
+export async function getHealth(): Promise<{ status: string; judge_mode: string }> {
+  if (!API_URL) return { status: 'ok', judge_mode: 'demo' };
+  return req('/health', { auth: false });
+}
+
+// POST /attempts — start or recover a day's attempt (requires consent + auth).
+// `day` is honored only in demo mode (the day-switcher); otherwise the server uses today.
+export async function startAttempt(day?: string): Promise<Attempt> {
+  if (!API_URL) return mockAttempt(day);
+  return req<Attempt>(`/attempts${day ? `?day=${day}` : ''}`, {
     method: 'POST',
     body: { consent_to_ai_processing: true },
   });
 }
 
-// GET /attempts/current — today's attempt, or null.
-export async function currentAttempt(): Promise<Attempt | null> {
+// GET /attempts/current — that day's attempt, or null.
+export async function currentAttempt(day?: string): Promise<Attempt | null> {
   if (!API_URL) return null;
-  return req<Attempt | null>('/attempts/current');
+  return req<Attempt | null>(`/attempts/current${day ? `?day=${day}` : ''}`);
 }
 
 // GET /attempts/{id}
@@ -157,17 +164,37 @@ export async function uploadRecording(attemptId: string, blob: Blob): Promise<At
 }
 
 // GET /leaderboard
-export async function getLeaderboard(): Promise<Leaderboard> {
-  if (!API_URL) return mockLeaderboard();
-  return req<Leaderboard>('/leaderboard');
+export async function getLeaderboard(day?: string): Promise<Leaderboard> {
+  if (!API_URL) return mockLeaderboard(day);
+  return req<Leaderboard>(`/leaderboard${day ? `?day=${day}` : ''}`);
 }
 
 // --- mock data (used only when VITE_API_URL is unset) ---
-function mockAttempt(): Attempt {
+const MOCK_QUESTIONS = [
+  { id: 'capital_australia', text: 'What is the capital of Australia?', category: 'geography', difficulty: 'medium', context: 'Name the city and sound sure of it.' },
+  { id: 'gold_symbol', text: 'What is the chemical symbol for gold?', category: 'science', difficulty: 'easy', context: 'State the symbol and you may say why.' },
+  { id: 'ww2_end', text: 'In what year did World War II end?', category: 'history', difficulty: 'easy', context: 'Give the year.' },
+  { id: 'largest_ocean', text: 'What is the largest ocean on Earth?', category: 'geography', difficulty: 'easy', context: 'Name the ocean.' },
+  { id: 'romeo_author', text: 'Who wrote the play Romeo and Juliet?', category: 'literature', difficulty: 'easy', context: 'Name the author.' },
+] as const;
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+function hashDay(day: string): number {
+  let h = 0;
+  for (const ch of day) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return h;
+}
+
+let lastMock: Attempt | null = null;
+
+function mockAttempt(day?: string): Attempt {
+  const d = day ?? todayISO();
+  const q = MOCK_QUESTIONS[hashDay(d) % MOCK_QUESTIONS.length];
   const created = Date.now() / 1000;
-  return {
+  lastMock = {
     id: 'mock-attempt',
-    day: new Date().toISOString().slice(0, 10),
+    day: d,
     status: 'recording',
     created,
     deadline: created + 150,
@@ -175,20 +202,15 @@ function mockAttempt(): Attempt {
     failure: null,
     demo: true,
     score: null,
-    question: {
-      id: 'leadership',
-      text: 'What makes someone a good leader?',
-      category: 'interview',
-      difficulty: 'medium',
-      context: 'Give a direct answer with a reason or example.',
-    },
+    question: { ...q, context: q.context },
   };
+  return lastMock;
 }
 
 function mockCompleted(): Attempt {
-  const a = mockAttempt();
+  const base = lastMock ?? mockAttempt();
   return {
-    ...a,
+    ...base,
     status: 'completed',
     score: {
       accuracy: 3500,
@@ -196,17 +218,17 @@ function mockCompleted(): Attempt {
       delivery: 3000,
       final_score: 3500,
       feedback: {
-        accuracy: 'Solid points, though a concrete example would sharpen it.',
-        confidence: 'Steady and convincing — you committed to the answer.',
-        delivery: 'Clear, but the pacing rushed near the end.',
+        accuracy: 'Solid, though a concrete detail would sharpen it. (mock)',
+        confidence: 'Steady and convincing — you committed to the answer. (mock)',
+        delivery: 'Clear, but the pacing rushed near the end. (mock)',
       },
     },
   };
 }
 
-function mockLeaderboard(): Leaderboard {
+function mockLeaderboard(day?: string): Leaderboard {
   return {
-    day: new Date().toISOString().slice(0, 10),
+    day: day ?? todayISO(),
     timezone: 'UTC',
     demo: true,
     entries: [

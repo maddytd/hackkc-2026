@@ -1,3 +1,4 @@
+import Playback from '../components/Playback';
 import ScoreCard from '../components/ScoreCard';
 import type { Attempt } from '../types/game';
 
@@ -35,7 +36,7 @@ export default function ResultsPage({
         )}
 
         {recordingUrl ? (
-          <video className="playback" src={recordingUrl} controls playsInline />
+          <Playback src={recordingUrl} />
         ) : (
           <p className="notice">Your recording is only saved on the device you played on.</p>
         )}

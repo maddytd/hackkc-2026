@@ -667,16 +667,38 @@ body {
   color: #fff;
 }
 
-.playback {
+.playback-wrap {
+  position: relative;
+  display: block;
   width: 100%;
   max-width: 360px;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border-radius: 14px;
+  padding: 0;
   border: 4px solid #000;
+  border-radius: 14px;
+  overflow: hidden;
   background: #000;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+
+.playback {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
   transform: scaleX(-1); /* match the mirrored live preview so it doesn't look flipped */
+}
+
+.playback-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 3rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
 }
 
 .score-card {

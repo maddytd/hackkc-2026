@@ -3,7 +3,13 @@ import Mic from './Mic';
 
 // YouTube-thumbnail-style landing: the meme face fills the frame, "LARPLE" + "does he know?"
 // in bold outlined caption text, and the mic out front. Hitting Play slides the face away.
-export default function StartScreen({ onStart }: { onStart: () => void }) {
+export default function StartScreen({
+  onStart,
+  onLeaderboard,
+}: {
+  onStart: () => void;
+  onLeaderboard: () => void;
+}) {
   const [launching, setLaunching] = useState(false);
   const [showHow, setShowHow] = useState(false);
 
@@ -28,6 +34,9 @@ export default function StartScreen({ onStart }: { onStart: () => void }) {
           </button>
           <button className="btn btn--ghost" onClick={() => setShowHow((v) => !v)}>
             HOW TO PLAY
+          </button>
+          <button className="btn btn--ghost" onClick={onLeaderboard}>
+            LEADERBOARD
           </button>
         </div>
       </div>

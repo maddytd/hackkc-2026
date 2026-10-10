@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 
 export type WebcamState = 'idle' | 'requesting' | 'live' | 'denied' | 'error';
 
-// Requests the camera (and mic, which the game needs) and streams it into a <video>.
-// Tracks are stopped on unmount so the camera light turns off when you leave.
+// Requests the camera + mic and streams it into a <video>. Exposes the MediaStream so a
+// recorder can capture it. Tracks are stopped on unmount so the camera light turns off.
 export function useWebcam(active: boolean) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [state, setState] = useState<WebcamState>('idle');
 
   useEffect(() => {
@@ -19,13 +20,14 @@ export function useWebcam(active: boolean) {
         video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
         audio: true,
       })
-      .then((stream) => {
+      .then((s) => {
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          s.getTracks().forEach((t) => t.stop());
           return;
         }
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
+        streamRef.current = s;
+        setStream(s);
+        if (videoRef.current) videoRef.current.srcObject = s;
         setState('live');
       })
       .catch((err: unknown) => {
@@ -38,8 +40,9 @@ export function useWebcam(active: boolean) {
       cancelled = true;
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
+      setStream(null);
     };
   }, [active]);
 
-  return { videoRef, state };
+  return { videoRef, state, stream };
 }

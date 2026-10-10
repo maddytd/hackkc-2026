@@ -1,12 +1,19 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Mic from '../components/Mic';
 import RecordingTimer from '../components/RecordingTimer';
+import { useRecorder } from '../hooks/useRecorder';
 import { useWebcam } from '../hooks/useWebcam';
-import { startAttempt } from '../lib/api';
+import { getAttempt, startAttempt, uploadRecording } from '../lib/api';
 import { RESPONSE_SECONDS } from '../lib/constants';
 import type { Attempt } from '../types/game';
 
-type Phase = 'loading' | 'getready' | 'recording' | 'done' | 'error';
+type Phase =
+  | 'loading'
+  | 'getready'
+  | 'recording'
+  | 'uploading'
+  | 'processing'
+  | 'error';
 
 const FALLBACK: Record<string, string> = {
   idle: 'Camera off',
@@ -15,35 +22,71 @@ const FALLBACK: Record<string, string> = {
   error: 'No camera found',
 };
 
-// Full-screen game: the venue fills the viewport, the prompt floats in a transparent
-// bar at the top, and your webcam + the centered mic sit in the middle. No scrolling.
-export default function PlayPage({ onExit }: { onExit: () => void }) {
+const TERMINAL = new Set(['completed', 'judge_failed', 'upload_failed', 'expired', 'replaced']);
+
+// Runs one attempt end to end: reveal question, record 30s, upload, poll, then hand the
+// finished attempt back to App for the results screen.
+export default function PlayPage({
+  onFinish,
+  onError,
+}: {
+  onFinish: (attempt: Attempt) => void;
+  onError: (message: string) => void;
+}) {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [count, setCount] = useState(3);
   const [elapsed, setElapsed] = useState(0);
   const startedAt = useRef(0);
-  const { videoRef, state: camState } = useWebcam(true);
+  const { videoRef, state: camState, stream } = useWebcam(true);
+  const recorder = useRecorder();
 
-  // Load today's question.
+  // Load today's attempt.
   useEffect(() => {
     let cancelled = false;
     startAttempt()
       .then((a) => {
-        if (!cancelled) {
-          setAttempt(a);
-          setPhase('getready');
+        if (cancelled) return;
+        if (a.status === 'completed' || a.score) {
+          onFinish(a); // already played today
+          return;
         }
+        setAttempt(a);
+        setPhase('getready');
       })
-      .catch(() => {
-        if (!cancelled) setPhase('error');
+      .catch((err) => {
+        if (!cancelled) {
+          setPhase('error');
+          onError(err?.message ?? "Couldn't start today's attempt.");
+        }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [onError, onFinish]);
 
-  // 3-2-1 get-ready, which also gives the camera a moment to start.
+  // Upload the recording, then poll until the judge finishes.
+  const finishRecording = useCallback(
+    async (blob: Blob) => {
+      if (!attempt) return;
+      setPhase('uploading');
+      try {
+        let current = await uploadRecording(attempt.id, blob);
+        setPhase('processing');
+        while (!TERMINAL.has(current.status)) {
+          await new Promise((r) => setTimeout(r, 2000));
+          current = await getAttempt(attempt.id);
+        }
+        onFinish(current);
+      } catch (err) {
+        setPhase('error');
+        onError(err instanceof Error ? err.message : 'Upload failed.');
+      }
+    },
+    [attempt, onFinish, onError],
+  );
+
+  // 3-2-1 get-ready, then start recording (also gives the camera a moment to warm up).
   useEffect(() => {
     if (phase !== 'getready') return;
     setCount(3);
@@ -51,6 +94,7 @@ export default function PlayPage({ onExit }: { onExit: () => void }) {
       setCount((c) => {
         if (c <= 1) {
           window.clearInterval(id);
+          if (stream) recorder.start(stream);
           startedAt.current = performance.now();
           setElapsed(0);
           setPhase('recording');
@@ -60,30 +104,46 @@ export default function PlayPage({ onExit }: { onExit: () => void }) {
       });
     }, 1000);
     return () => window.clearInterval(id);
-  }, [phase]);
+  }, [phase, stream, recorder]);
 
   // 30-second recording window.
   useEffect(() => {
     if (phase !== 'recording') return;
+    let stopped = false;
     const id = window.setInterval(() => {
       const s = (performance.now() - startedAt.current) / 1000;
       if (s >= RESPONSE_SECONDS) {
         window.clearInterval(id);
-        setElapsed(RESPONSE_SECONDS);
-        setPhase('done');
+        if (!stopped) {
+          stopped = true;
+          setElapsed(RESPONSE_SECONDS);
+          recorder.stop().then(finishRecording);
+        }
       } else {
         setElapsed(s);
       }
     }, 100);
     return () => window.clearInterval(id);
-  }, [phase]);
+  }, [phase, recorder, finishRecording]);
+
+  function stopEarly() {
+    if (phase !== 'recording') return;
+    setPhase('uploading');
+    recorder.stop().then(finishRecording);
+  }
+
+  const statusText =
+    phase === 'uploading'
+      ? 'Uploading your answer…'
+      : phase === 'processing'
+        ? 'The judge is scoring you…'
+        : '';
 
   return (
     <main className="game">
       <div className="game-bg" />
       <div className="floor" />
 
-      {/* Mic hangs in from the top, in front of your face. */}
       <Mic className="rig-mic rig-mic--top" />
 
       {attempt && (
@@ -94,7 +154,7 @@ export default function PlayPage({ onExit }: { onExit: () => void }) {
         </div>
       )}
 
-      {(phase === 'recording' || phase === 'done') && (
+      {phase === 'recording' && (
         <div className="game-timer">
           <RecordingTimer elapsed={elapsed} total={RESPONSE_SECONDS} />
         </div>
@@ -117,24 +177,18 @@ export default function PlayPage({ onExit }: { onExit: () => void }) {
         )}
       </div>
 
-      {phase === 'getready' && <div className="countdown">{count}</div>}
-
-      {phase === 'done' && (
-        <div className="overlay-center">
-          <p className="big">Time's up!</p>
-          <p className="notice">Scoring comes next.</p>
-          <button className="btn btn--ghost" onClick={onExit}>
-            Back to start
-          </button>
-        </div>
+      {phase === 'recording' && (
+        <button className="btn btn--ghost stop-btn" onClick={stopEarly}>
+          ■ DONE
+        </button>
       )}
 
-      {phase === 'error' && (
+      {phase === 'getready' && <div className="countdown">{count}</div>}
+
+      {(phase === 'uploading' || phase === 'processing') && (
         <div className="overlay-center">
-          <p className="big">Couldn't load today's question.</p>
-          <button className="btn btn--ghost" onClick={onExit}>
-            Back to start
-          </button>
+          <div className="spinner" />
+          <p className="big">{statusText}</p>
         </div>
       )}
     </main>

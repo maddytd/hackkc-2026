@@ -1,21 +1,37 @@
 import type { Score } from '../types/game';
 
-const CATEGORIES = ['accuracy', 'confidence', 'delivery'] as const;
+const CATEGORIES: { key: keyof Score['feedback']; label: string }[] = [
+  { key: 'accuracy', label: 'Accuracy' },
+  { key: 'confidence', label: 'Confidence' },
+  { key: 'delivery', label: 'Delivery' },
+];
+
+const MAX = 5000;
 
 export default function ScoreCard({ score }: { score: Score }) {
   return (
-    <article className="score-card">
-      <p className="final">
-        {score.final_score}
-        <span>/5000</span>
-      </p>
-      <ul>
-        {CATEGORIES.map((category) => (
-          <li key={category}>
-            <strong>{category}</strong> {score[category]}: {score.feedback[category]}
-          </li>
-        ))}
+    <div className="score-card">
+      <div className="final">
+        <span className="final-num">{score.final_score.toLocaleString()}</span>
+        <span className="final-max">/ {MAX.toLocaleString()}</span>
+      </div>
+      <ul className="score-list">
+        {CATEGORIES.map(({ key, label }) => {
+          const points = score[key];
+          return (
+            <li key={key}>
+              <div className="score-row">
+                <strong>{label}</strong>
+                <span>{points.toLocaleString()}</span>
+              </div>
+              <div className="score-bar">
+                <div className="score-fill" style={{ width: `${(points / MAX) * 100}%` }} />
+              </div>
+              <p className="score-feedback">{score.feedback[key]}</p>
+            </li>
+          );
+        })}
       </ul>
-    </article>
+    </div>
   );
 }

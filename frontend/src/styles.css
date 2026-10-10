@@ -676,6 +676,7 @@ body {
   border: 4px solid #000;
   background: #000;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+  transform: scaleX(-1); /* match the mirrored live preview so it doesn't look flipped */
 }
 
 .score-card {

@@ -1,0 +1,512 @@
+:root {
+  --bg: #07080f;
+  --fg: #f4f4f8;
+  --muted: #b4b1c8;
+  --yellow: #ffe600;
+  --accent: #ffe600;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  overflow: hidden; /* both screens fill the viewport; no page scroll */
+}
+
+/* Bold outlined "thumbnail" text, used for big meme captions. */
+.meme {
+  font-family: 'Anton', 'Archivo Black', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--yellow);
+  -webkit-text-stroke: 3px #000;
+  paint-order: stroke fill;
+  text-shadow: 5px 5px 0 rgba(0, 0, 0, 0.9);
+}
+
+/* Shared buttons */
+.btn {
+  font-family: 'Anton', system-ui, sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.04em;
+  border: 3px solid #000;
+  border-radius: 10px;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.btn--play {
+  background: var(--yellow);
+  color: #111;
+  box-shadow: 4px 4px 0 #000;
+}
+
+.btn--ghost {
+  background: #111;
+  color: #fff;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
+}
+
+.btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.tag {
+  display: inline-block;
+  font-family: 'Anton', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #111;
+  background: var(--yellow);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 2px solid #000;
+}
+
+.notice {
+  color: var(--muted);
+}
+
+/* ============ Start screen ============ */
+.start {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #05060d;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% 32%; /* keep the face in view, crop the baked caption */
+  transition: transform 0.7s cubic-bezier(0.5, 0, 0.75, 0), opacity 0.7s ease;
+}
+
+/* Darken the left so the caption text reads, and mask the photo's baked text. */
+.start-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 6, 13, 0.92) 0%, rgba(5, 6, 13, 0.5) 40%, rgba(5, 6, 13, 0) 68%),
+    linear-gradient(0deg, rgba(5, 6, 13, 0.85) 0%, rgba(5, 6, 13, 0) 45%);
+}
+
+.start-content {
+  position: absolute;
+  left: clamp(20px, 6vw, 80px);
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 560px;
+  z-index: 3;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(4rem, 15vw, 10rem);
+  line-height: 0.9;
+  color: var(--yellow);
+  text-transform: uppercase;
+  -webkit-text-stroke: clamp(2px, 0.7vw, 5px) #000;
+  paint-order: stroke fill;
+  text-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
+}
+
+.subtitle {
+  margin: 6px 0 26px;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(1.6rem, 5vw, 3rem);
+  line-height: 1;
+  color: #fff;
+  text-transform: uppercase;
+  -webkit-text-stroke: 2px #000;
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.9);
+}
+
+.start-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+/* Mic out front at rest; fades up and away on launch. */
+.mic-rig {
+  position: absolute;
+  bottom: 0;
+  left: 70%;
+  height: 56%;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  z-index: 2;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.6));
+}
+
+.mic-rig .mic {
+  height: 100%;
+  width: auto;
+}
+
+/* Launch transition: face slides right out, caption fades, mic lifts away. */
+.start--launching .face {
+  transform: translateX(42%) scale(1.06);
+  opacity: 0;
+}
+
+.start--launching .start-content {
+  opacity: 0;
+  transform: translateY(-50%) translateX(-26px);
+}
+
+.start--launching .mic-rig {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-48px) scale(0.9);
+}
+
+/* How-to panel */
+.howto {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(3, 3, 9, 0.72);
+  z-index: 20;
+}
+
+.howto-card {
+  position: relative;
+  width: min(460px, 100%);
+  max-height: 85dvh;
+  overflow: auto;
+  background: #14121f;
+  border: 3px solid #000;
+  border-radius: 16px;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.7);
+  padding: 26px 26px 30px;
+}
+
+.howto-card h2 {
+  margin: 0 0 14px;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 0.03em;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.5px #000;
+  paint-order: stroke fill;
+}
+
+.howto-card ol {
+  margin: 0 0 22px;
+  padding-left: 20px;
+  line-height: 1.6;
+  color: #e7e5f2;
+  font-family: system-ui, sans-serif;
+}
+
+.howto-card li {
+  margin-bottom: 8px;
+}
+
+.howto-close {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font-size: 1.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ============ Game screen ============ */
+.game {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, #1a2744 0%, #0a0e1c 55%, #05060d 100%);
+  animation: fadein 0.45s ease;
+}
+
+/* Blurred venue for depth; heavily darkened so nothing competes with you. */
+.game-bg {
+  position: absolute;
+  inset: -20px;
+  background: url('/stage.jpg') center / cover no-repeat;
+  filter: blur(14px) brightness(0.32) saturate(1.2) hue-rotate(195deg);
+  z-index: 0;
+}
+
+.floor {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 6, 13, 0.3) 0%,
+    transparent 30%,
+    rgba(5, 6, 13, 0.55) 70%,
+    #05060d 100%
+  );
+  pointer-events: none;
+}
+
+.prompt-bar {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(680px, 92%);
+  z-index: 5;
+  text-align: center;
+  padding: 14px 20px;
+  border-radius: 14px;
+  background: rgba(8, 8, 18, 0.6);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(0, 0, 0, 0.8);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.5);
+}
+
+.prompt-bar h2 {
+  margin: 8px 0 0;
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  font-size: clamp(1.15rem, 3.4vw, 1.8rem);
+  color: #fff;
+}
+
+.prompt-bar p {
+  margin: 6px 0 0;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.game-timer {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 6;
+}
+
+/* Your webcam, framed like a thumbnail subject. */
+.screen {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  transform: translateX(-50%);
+  height: 62%;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0a0a12;
+  border: 4px solid #000;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.15),
+    0 22px 60px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+}
+
+.screen--live {
+  border-color: #ff2e2e;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.15),
+    0 0 46px rgba(255, 40, 40, 0.5),
+    0 22px 60px rgba(0, 0, 0, 0.7);
+}
+
+.screen-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror, like a selfie preview */
+  transition: opacity 0.3s ease;
+}
+
+.screen-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+}
+
+.screen-tally {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.75);
+  font-family: 'Anton', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.screen-tally .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff2e2e;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+/* Mic hanging in from the top, angled like a boom. */
+.rig-mic {
+  width: auto;
+  z-index: 3;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6));
+}
+
+.rig-mic--top {
+  position: absolute;
+  top: -3%;
+  left: 60%;
+  height: 40%;
+  transform: translateX(-50%) rotate(192deg);
+}
+
+/* Timer */
+.timer {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.timer-value {
+  font-family: 'Anton', sans-serif;
+  font-size: 2rem;
+  color: var(--yellow);
+  -webkit-text-stroke: 2px #000;
+  paint-order: stroke fill;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.9);
+}
+
+.timer-bar {
+  width: 130px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #000;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.timer-fill {
+  height: 100%;
+  background: var(--yellow);
+  transition: width 0.1s linear;
+}
+
+/* Overlays */
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 10;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(7rem, 26vw, 16rem);
+  color: var(--yellow);
+  -webkit-text-stroke: 6px #000;
+  paint-order: stroke fill;
+  text-shadow: 8px 8px 0 rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  animation: pop 1s ease-in-out infinite;
+}
+
+.overlay-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  z-index: 10;
+  text-align: center;
+  background: rgba(3, 3, 9, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.overlay-center .big {
+  margin: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(2rem, 8vw, 3.5rem);
+  color: var(--yellow);
+  -webkit-text-stroke: 3px #000;
+  paint-order: stroke fill;
+  text-shadow: 5px 5px 0 rgba(0, 0, 0, 0.9);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes pop {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .face,
+  .mic-rig,
+  .start--launching .face,
+  .start--launching .mic-rig,
+  .game {
+    transition: none;
+    animation: none;
+  }
+  .screen-tally .dot,
+  .countdown {
+    animation: none;
+  }
+}

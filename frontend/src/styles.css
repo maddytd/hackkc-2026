@@ -591,6 +591,27 @@ body {
   text-decoration: underline;
 }
 
+/* Logout (top-right of start screen) */
+.logout-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 6;
+  font-family: 'Anton', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
 /* ============ Results & leaderboard ============ */
 .results {
   position: fixed;
@@ -629,6 +650,32 @@ body {
   padding: 4px 10px;
   border-radius: 6px;
   border: 2px solid #000;
+}
+
+.results-question {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.results-question h2 {
+  margin: 0;
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: clamp(1.2rem, 4vw, 1.7rem);
+  color: #fff;
+}
+
+.playback {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 4px solid #000;
+  background: #000;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
 }
 
 .score-card {

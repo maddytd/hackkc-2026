@@ -5,6 +5,7 @@ import { useRecorder } from '../hooks/useRecorder';
 import { useWebcam } from '../hooks/useWebcam';
 import { getAttempt, startAttempt, uploadRecording } from '../lib/api';
 import { RESPONSE_SECONDS } from '../lib/constants';
+import { saveRecording } from '../lib/recordingStore';
 import type { Attempt } from '../types/game';
 
 type Phase =
@@ -30,7 +31,7 @@ export default function PlayPage({
   onFinish,
   onError,
 }: {
-  onFinish: (attempt: Attempt) => void;
+  onFinish: (attempt: Attempt, recording: Blob | null) => void;
   onError: (message: string) => void;
 }) {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
@@ -48,7 +49,7 @@ export default function PlayPage({
       .then((a) => {
         if (cancelled) return;
         if (a.status === 'completed' || a.score) {
-          onFinish(a); // already played today
+          onFinish(a, null); // already played today
           return;
         }
         setAttempt(a);
@@ -69,6 +70,8 @@ export default function PlayPage({
   const finishRecording = useCallback(
     async (blob: Blob) => {
       if (!attempt) return;
+      // Keep the recording in the browser so it can be viewed back today.
+      await saveRecording(attempt.day, blob);
       setPhase('uploading');
       try {
         let current = await uploadRecording(attempt.id, blob);
@@ -77,7 +80,7 @@ export default function PlayPage({
           await new Promise((r) => setTimeout(r, 2000));
           current = await getAttempt(attempt.id);
         }
-        onFinish(current);
+        onFinish(current, blob);
       } catch (err) {
         setPhase('error');
         onError(err instanceof Error ? err.message : 'Upload failed.');

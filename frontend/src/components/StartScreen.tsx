@@ -6,9 +6,13 @@ import Mic from './Mic';
 export default function StartScreen({
   onStart,
   onLeaderboard,
+  onLogout,
+  authed,
 }: {
   onStart: () => void;
   onLeaderboard: () => void;
+  onLogout: () => void;
+  authed: boolean;
 }) {
   const [launching, setLaunching] = useState(false);
   const [showHow, setShowHow] = useState(false);
@@ -24,6 +28,12 @@ export default function StartScreen({
     <main className={`start ${launching ? 'start--launching' : ''}`}>
       <img className="face" src="/face.png" alt="" aria-hidden="true" />
       <div className="start-overlay" />
+
+      {authed && (
+        <button className="logout-btn" onClick={onLogout}>
+          LOG OUT
+        </button>
+      )}
 
       <div className="start-content">
         <h1 className="title">LARPLE</h1>

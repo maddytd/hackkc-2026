@@ -10,7 +10,9 @@ const MENU_SCENES = [
   'lying',
   'brains',
   'doomed',
-].map((name) => `/backgrounds/${name}.jpg`);
+]
+  .map((name) => `/backgrounds/${name}.jpg`)
+  .concat('/backgrounds/why-is-he-still-talking.webp');
 const SCENE_MS = 9000;
 
 // Flat artwork moves on its own plane over a softer, slower background layer.

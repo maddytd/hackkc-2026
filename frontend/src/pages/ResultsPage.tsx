@@ -9,7 +9,10 @@ import type { Attempt } from '../types/game';
 const RESULT_SCENES = [
   '/results/what-does-he-even-do.jpg',
   '/results/lets-talk.jpg',
-  // To add once saved: useless-info, feels-the-larp, no-limit-to-the-larp, one-percent
+  '/results/useless-info.webp',
+  '/results/feels-the-larp.webp',
+  '/results/no-limit-to-the-larp.webp',
+  '/results/one-percent.webp',
 ];
 
 export default function ResultsPage({

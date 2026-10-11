@@ -37,11 +37,6 @@ export default function App() {
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [authTick, setAuthTick] = useState(0);
   const [testing, setTesting] = useState(false);
-  const [processingNotice, setProcessingNotice] = useState(
-    apiConfigured
-      ? 'By playing, you agree to send your recording to the configured external AI providers for scoring.'
-      : 'Demo scoring uses fixed ratings and does not send your recording to an AI provider.',
-  );
   const [selectedDay, setSelectedDay] = useState(todayUTC());
   const authed = apiConfigured && isAuthed();
 
@@ -53,7 +48,6 @@ export default function App() {
       .then((h) => {
         if (cancelled) return;
         setTesting(h.day_override ?? h.judge_mode === 'demo');
-        if (h.processing_notice) setProcessingNotice(h.processing_notice);
         // The server decides when the day rolls over; start the day-switcher there.
         if (h.day) setSelectedDay(h.day);
       })
@@ -148,7 +142,6 @@ export default function App() {
       day={selectedDay}
       onPrevDay={() => setSelectedDay((d) => addDaysISO(d, -1))}
       onNextDay={() => setSelectedDay((d) => addDaysISO(d, 1))}
-      processingNotice={processingNotice}
     />
   );
 

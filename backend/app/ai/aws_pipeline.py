@@ -297,6 +297,28 @@ async def run_stage(settings, ledger, stage, endpoints, schema, prompt, system_p
     raise DeferredJudging(min(retry_times))
 
 
+NO_ANSWER = "No spoken answer was heard, so there was nothing to rate."
+
+
+def combine(performance, accuracy):
+    """Join the two agents' ratings on the application's 0..5000 scale."""
+    ratings = {
+        "accuracy": accuracy.accuracy,
+        "confidence": performance.confidence,
+        "delivery": performance.delivery,
+    }
+    scores = {
+        name: {"rating": category.rating * 500, "feedback": category.feedback}
+        for name, category in ratings.items()
+    }
+    # Speech models can turn silence into a stray word or two. With no correct content
+    # and almost nothing said, there was no performance to reward either.
+    if accuracy.accuracy.rating == 0 and len(performance.transcript.split()) < 3:
+        for name in ("confidence", "delivery"):
+            scores[name] = {"rating": 0, "feedback": NO_ANSWER}
+    return Judgment.model_validate(scores)
+
+
 async def _judge_aws(settings, attempt, challenge):
     policy = json.loads(challenge["model"])
     if policy.get("version") != 1:
@@ -339,16 +361,7 @@ async def _judge_aws(settings, attempt, challenge):
         [{"text": json.dumps({"reference": reference, "transcript": performance.transcript})}],
         policy["accuracy_prompt"],
     )
-    result = Judgment.model_validate(
-        {
-            name: {"rating": category.rating * 500, "feedback": category.feedback}
-            for name, category in (
-                ("accuracy", accuracy.accuracy),
-                ("confidence", performance.confidence),
-                ("delivery", performance.delivery),
-            )
-        }
-    )
+    result = combine(performance, accuracy)
     result._provenance = {
         "mode": "aws",
         "policy_version": 1,

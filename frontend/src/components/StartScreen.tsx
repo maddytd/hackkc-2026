@@ -13,7 +13,6 @@ export default function StartScreen({
   day,
   onPrevDay,
   onNextDay,
-  processingNotice,
 }: {
   onStart: () => void;
   onLeaderboard: () => void;
@@ -24,13 +23,41 @@ export default function StartScreen({
   day: string;
   onPrevDay: () => void;
   onNextDay: () => void;
-  processingNotice: string;
 }) {
   const [settings, setSettings] = useState(false);
   const [paused, setPaused] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const settingsButton = useRef<HTMLButtonElement>(null);
   const howTo = useRef<HTMLDialogElement>(null);
+
+  // Let the dialog ease out before it closes; `after` runs once it is gone.
+  const closeHowTo = (after?: () => void) => {
+    const dialog = howTo.current;
+    if (!dialog?.open || dialog.dataset.closing) return;
+    const finish = () => {
+      delete dialog.dataset.closing;
+      dialog.close();
+      after?.();
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      finish();
+      return;
+    }
+    dialog.dataset.closing = 'true';
+    let done = false;
+    const once = () => {
+      if (done) return;
+      done = true;
+      dialog.removeEventListener('animationend', onEnd);
+      finish();
+    };
+    const onEnd = (event: AnimationEvent) => {
+      if (event.target === dialog) once();
+    };
+    dialog.addEventListener('animationend', onEnd);
+    // Fallback in case the animation never reports back.
+    window.setTimeout(once, 400);
+  };
 
   useEffect(() => {
     if (!settings) return;
@@ -120,7 +147,6 @@ export default function StartScreen({
         <button className="menu-how" onClick={() => howTo.current?.showModal()}>
           HOW TO PLAY <span>↗</span>
         </button>
-        <p className="processing-notice">{processingNotice}</p>
       </nav>
 
       <FunFact />
@@ -136,10 +162,15 @@ export default function StartScreen({
         ref={howTo}
         aria-labelledby="howto-title"
         onClick={(e) => {
-          if (e.target === e.currentTarget) howTo.current?.close();
+          if (e.target === e.currentTarget) closeHowTo();
+        }}
+        onCancel={(e) => {
+          // Escape key: play the same exit as the close button.
+          e.preventDefault();
+          closeHowTo();
         }}
       >
-        <button className="howto-close" onClick={() => howTo.current?.close()} aria-label="Close">
+        <button className="howto-close" onClick={() => closeHowTo()} aria-label="Close">
           ×
         </button>
         <p className="menu-eyebrow">KNOW IT. OR SELL IT.</p>
@@ -153,10 +184,7 @@ export default function StartScreen({
         </ol>
         <button
           className="btn btn--play"
-          onClick={() => {
-            howTo.current?.close();
-            onStart();
-          }}
+          onClick={() => closeHowTo(onStart)}
         >
           LET’S PLAY
         </button>

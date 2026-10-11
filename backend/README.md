@@ -30,7 +30,7 @@ python -m app.worker
 
 Interactive API documentation: http://localhost:8000/docs
 
-For development without an AI key, set `LARP_JUDGE_MODE=demo` in `.env`. Demo judging always returns 3,000 points and explicitly marks responses and leaderboards as demo. It still validates real media. Use a separate `LARP_STORAGE_DIR` for demo and real competitions: daily model, mode, questions, and rubric are immutable once that day's first attempt starts.
+For development without an AI key, set `LARP_JUDGE_MODE=demo` in `.env`. Demo judging always returns 3,000 points and explicitly marks responses and leaderboards as demo. It still validates real media. To add 50 hard-coded, clearly labeled fabricated entries to the current day's leaderboard at startup, set `LARP_DEMO_SEED_SCORES=true`. This works with either judging mode, is safe to run repeatedly, and marks the leaderboard as demo data while the seeded scores are present. Set it back to `false` to remove the fabricated entries on startup; real player scores are left untouched. The seeded accounts cannot log in. Use a separate `LARP_STORAGE_DIR` for demo and real competitions: daily model, mode, questions, and rubric are immutable once that day's first attempt starts.
 
 ## API integration
 

@@ -23,6 +23,7 @@ def create_app(settings=None):
     @asynccontextmanager
     async def lifespan(app):
         initialize(settings)
+        attempts.set_demo_scores(settings, settings.demo_seed_scores)
         yield
 
     app = FastAPI(title="Larple API", version="0.1.0", lifespan=lifespan)
@@ -201,10 +202,11 @@ def create_app(settings=None):
             challenge = db.execute(
                 "SELECT mode FROM challenges WHERE day=?", (selected,)
             ).fetchone()
+            has_demo_scores = attempts.has_seeded_demo_scores(db, selected)
         return {
             "day": selected,
             "timezone": "UTC",
-            "demo": bool(challenge and challenge[0] == "demo"),
+            "demo": bool((challenge and challenge[0] == "demo") or has_demo_scores),
             "entries": [dict(row) for row in rows],
         }
 

@@ -12,8 +12,9 @@ class Settings(BaseSettings):
     storage_dir: Path = ROOT / "storage"
     cors_origins: list[str] = ["http://localhost:5173"]
     judge_mode: Literal["gemini", "demo"] = "gemini"
+    demo_seed_scores: bool = False
     # Allow the demo day-switcher even in gemini mode (for testing prompts with real scoring).
-    allow_day_override: bool = False
+    allow_day_override: bool = True
     gemini_api_key: SecretStr = SecretStr("")
     gemini_model: str = "gemini-3.8-flash"
     invite_code: str = ""

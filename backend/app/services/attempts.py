@@ -10,6 +10,59 @@ from fastapi import HTTPException
 from app.config import ROOT
 from app.database import connect
 
+DEMO_SCORES = (
+    ("demo-01", "Demo_Avery", 4820, 4610, 4730),
+    ("demo-02", "Demo_Blair", 4680, 4790, 4510),
+    ("demo-03", "Demo_Casey", 4570, 4420, 4690),
+    ("demo-04", "Demo_Drew", 4490, 4580, 4380),
+    ("demo-05", "Demo_Elliot", 4380, 4310, 4520),
+    ("demo-06", "Demo_Finley", 4270, 4460, 4290),
+    ("demo-07", "Demo_Gray", 4190, 4210, 4400),
+    ("demo-08", "Demo_Harper", 4080, 4370, 4210),
+    ("demo-09", "Demo_Indigo", 4010, 4140, 4320),
+    ("demo-10", "Demo_Jules", 3950, 4260, 4020),
+    ("demo-11", "Demo_Kai", 3880, 3990, 4230),
+    ("demo-12", "Demo_Lennon", 3810, 4160, 3970),
+    ("demo-13", "Demo_Morgan", 3740, 3890, 4120),
+    ("demo-14", "Demo_Nico", 3670, 4050, 3840),
+    ("demo-15", "Demo_Oakley", 3600, 3780, 4060),
+    ("demo-16", "Demo_Parker", 3540, 3970, 3710),
+    ("demo-17", "Demo_Quinn", 3470, 3630, 3990),
+    ("demo-18", "Demo_River", 3400, 3850, 3560),
+    ("demo-19", "Demo_Sage", 3340, 3510, 3890),
+    ("demo-20", "Demo_Taylor", 3270, 3760, 3410),
+    ("demo-21", "Demo_Umber", 3200, 3390, 3710),
+    ("demo-22", "Demo_Val", 3140, 3620, 3260),
+    ("demo-23", "Demo_Wren", 3070, 3260, 3570),
+    ("demo-24", "Demo_Xen", 3000, 3480, 3110),
+    ("demo-25", "Demo_Yuki", 2940, 3130, 3430),
+    ("demo-26", "Demo_Zion", 2870, 3350, 2960),
+    ("demo-27", "Demo_Ari", 2810, 2990, 3290),
+    ("demo-28", "Demo_Bex", 2740, 3210, 2820),
+    ("demo-29", "Demo_Cam", 2680, 2850, 3150),
+    ("demo-30", "Demo_Dakota", 2610, 3070, 2670),
+    ("demo-31", "Demo_Emery", 2550, 2710, 3010),
+    ("demo-32", "Demo_Frankie", 2480, 2930, 2520),
+    ("demo-33", "Demo_Gale", 2420, 2570, 2870),
+    ("demo-34", "Demo_Hollis", 2350, 2790, 2380),
+    ("demo-35", "Demo_Ira", 2290, 2440, 2730),
+    ("demo-36", "Demo_Jamie", 2220, 2650, 2230),
+    ("demo-37", "Demo_Kendall", 2160, 2300, 2590),
+    ("demo-38", "Demo_Luca", 2090, 2510, 2080),
+    ("demo-39", "Demo_Milan", 2030, 2160, 2450),
+    ("demo-40", "Demo_Nova", 1960, 2370, 1930),
+    ("demo-41", "Demo_Ollie", 1900, 2020, 2310),
+    ("demo-42", "Demo_Phoenix", 1830, 2230, 1780),
+    ("demo-43", "Demo_Remy", 1770, 1880, 2170),
+    ("demo-44", "Demo_Sol", 1700, 2090, 1640),
+    ("demo-45", "Demo_Tatum", 1640, 1740, 2030),
+    ("demo-46", "Demo_Uni", 1570, 1950, 1490),
+    ("demo-47", "Demo_Vesper", 1510, 1600, 1890),
+    ("demo-48", "Demo_Wylie", 1440, 1810, 1340),
+    ("demo-49", "Demo_Xavi", 1380, 1460, 1750),
+    ("demo-50", "Demo_Zuri", 1310, 1670, 1200),
+)
+
 
 def day_at(now):
     return datetime.fromtimestamp(now, UTC).date().isoformat()
@@ -67,6 +120,77 @@ def challenge_for(db, settings, day):
     if row["mode"] != settings.judge_mode or row["model"] != settings.gemini_model:
         raise HTTPException(503, "Judge configuration is locked for this competition day")
     return row
+
+
+def set_demo_scores(settings, enabled):
+    player_ids = tuple(player_id for player_id, *_ in DEMO_SCORES)
+    placeholders = ",".join("?" for _ in player_ids)
+    with connect(settings, write=True) as db:
+        if not enabled:
+            db.execute(f"DELETE FROM scores WHERE player_id IN ({placeholders})", player_ids)
+            db.execute(f"DELETE FROM attempts WHERE player_id IN ({placeholders})", player_ids)
+            db.execute(f"DELETE FROM sessions WHERE player_id IN ({placeholders})", player_ids)
+            db.execute(f"DELETE FROM players WHERE id IN ({placeholders})", player_ids)
+            return
+        day = day_at(time.time())
+        now = time.time()
+        challenge = challenge_for(db, settings, day)
+        question = json.dumps(daily_question(json.loads(challenge["questions"]), day))
+        for player_id, alias, accuracy, confidence, delivery in DEMO_SCORES:
+            existing_player = db.execute(
+                "SELECT id,alias FROM players WHERE alias=? OR id=?", (alias, player_id)
+            ).fetchone()
+            if existing_player and (
+                existing_player["id"] != player_id or existing_player["alias"] != alias
+            ):
+                raise RuntimeError(f"Cannot seed demo account; ID or alias for {alias!r} is in use")
+            db.execute(
+                "INSERT OR IGNORE INTO players VALUES (?,?,?,?)",
+                (player_id, alias, "00" * 16 + ":" + "00" * 32, now),
+            )
+
+            attempt_id = f"demo-attempt-{player_id}-{day}"
+            score = db.execute(
+                "SELECT 1 FROM scores WHERE attempt_id=?", (attempt_id,)
+            ).fetchone()
+            if score:
+                continue
+            attempt = db.execute("SELECT 1 FROM attempts WHERE id=?", (attempt_id,)).fetchone()
+            if attempt:
+                raise RuntimeError(f"Cannot seed demo score; attempt {attempt_id} already exists")
+            final_score = round((accuracy + confidence + delivery) / 3)
+            feedback = {
+                category: "Fabricated score for the demo leaderboard."
+                for category in ("accuracy", "confidence", "delivery")
+            }
+            db.execute(
+                "INSERT INTO attempts "
+                "(id,player_id,day,question,status,created,deadline) "
+                "VALUES (?,?,?,?, 'completed', ?, ?)",
+                (attempt_id, player_id, day, question, now, now),
+            )
+            db.execute(
+                "INSERT INTO scores VALUES (?,?,?,?,?,?,?,?)",
+                (
+                    attempt_id,
+                    player_id,
+                    day,
+                    accuracy,
+                    confidence,
+                    delivery,
+                    final_score,
+                    json.dumps(feedback),
+                ),
+            )
+
+
+def has_seeded_demo_scores(db, day):
+    player_ids = tuple(player_id for player_id, *_ in DEMO_SCORES)
+    placeholders = ",".join("?" for _ in player_ids)
+    return db.execute(
+        f"SELECT 1 FROM scores WHERE day=? AND player_id IN ({placeholders}) LIMIT 1",
+        (day, *player_ids),
+    ).fetchone() is not None
 
 
 def daily_question(questions, day):

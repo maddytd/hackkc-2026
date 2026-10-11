@@ -4,12 +4,68 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
 import pytest
+from fastapi.testclient import TestClient
 from conftest import start, upload
 
+from app.config import Settings
 from app.database import connect
+from app.main import create_app
 from app.schemas import Judgment
 from app.services import attempts
 from app.worker import run_once
+
+
+@pytest.mark.parametrize("judge_mode", ["demo", "gemini"])
+def test_demo_seed_toggle_adds_and_removes_only_demo_scores(tmp_path, judge_mode):
+    settings = Settings(
+        storage_dir=tmp_path,
+        judge_mode=judge_mode,
+        demo_seed_scores=True,
+        _env_file=None,
+    )
+    app = create_app(settings)
+    with TestClient(app) as client:
+        board = client.get("/leaderboard").json()
+        entries = board["entries"]
+        assert board["demo"] is True
+        assert len(entries) == 50
+        assert all(entry["alias"].startswith("Demo_") for entry in entries)
+
+        response = client.post(
+            "/auth/register", json={"alias": "contestant", "password": "test-password"}
+        )
+        assert response.status_code == 201
+        player_id = response.json()["player_id"]
+
+        day = attempts.day_at(time.time())
+        with connect(settings, write=True) as db:
+            challenge = db.execute(
+                "SELECT questions FROM challenges WHERE day=?", (day,)
+            ).fetchone()
+            question = json.loads(challenge["questions"])[0]
+            attempt_id = "real-attempt"
+            db.execute(
+                "INSERT INTO attempts (id,player_id,day,question,status,created,deadline) "
+                "VALUES (?,?,?,?,'completed',?,?)",
+                (attempt_id, player_id, day, json.dumps(question), time.time(), time.time()),
+            )
+            db.execute(
+                "INSERT INTO scores VALUES (?,?,?,?,?,?,?,?)",
+                (attempt_id, player_id, day, 3200, 3300, 3400, 3300, "{}"),
+            )
+
+    with TestClient(app) as client:
+        assert len(client.get("/leaderboard?limit=100").json()["entries"]) == 51
+
+    settings.demo_seed_scores = False
+    with TestClient(app) as client:
+        board = client.get("/leaderboard").json()
+        entries = board["entries"]
+        assert board["demo"] is (judge_mode == "demo")
+        assert [entry["alias"] for entry in entries] == ["contestant"]
+        with connect(settings) as db:
+            assert db.execute("SELECT count(*) FROM players").fetchone()[0] == 1
+            assert db.execute("SELECT count(*) FROM scores").fetchone()[0] == 1
 
 
 def test_full_flow_and_duplicate_requests(setup):

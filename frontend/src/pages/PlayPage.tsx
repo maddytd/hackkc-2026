@@ -142,7 +142,7 @@ export default function PlayPage({
 
   // 30-second recording window.
   useEffect(() => {
-    if (phase !== 'recording') return;
+    if (phase !== 'recording' || performance.now() - startedAt.current < 5000) return;
     let stopped = false;
     const id = window.setInterval(() => {
       const s = (performance.now() - startedAt.current) / 1000;
@@ -161,7 +161,7 @@ export default function PlayPage({
   }, [phase, stopAndSubmit]);
 
   function stopEarly() {
-    if (phase !== 'recording') return;
+    if (phase !== 'recording' || performance.now() - startedAt.current < 5000) return;
     void stopAndSubmit();
   }
 
@@ -211,8 +211,12 @@ export default function PlayPage({
       </div>
 
       {phase === 'recording' && (
-        <button className="btn btn--ghost stop-btn" onClick={stopEarly}>
-          ■ DONE
+        <button
+          className="btn btn--ghost stop-btn"
+          onClick={stopEarly}
+          disabled={elapsed < 5}
+        >
+          {elapsed < 5 ? `RECORD AT LEAST 5s (${Math.ceil(5 - elapsed)}s)` : '■ DONE'}
         </button>
       )}
 

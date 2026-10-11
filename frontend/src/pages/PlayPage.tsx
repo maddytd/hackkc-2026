@@ -204,7 +204,7 @@ export default function PlayPage({
       {(phase === 'uploading' || phase === 'processing') && (
         <div className="scoring-screen">
           <CinematicBackdrop />
-          <FunFact className="fun-fact--loading" />
+          <FunFact />
           <div className="menu-brand" aria-label="Larple">
             LARPLE<span>DOES HE KNOW?</span>
           </div>

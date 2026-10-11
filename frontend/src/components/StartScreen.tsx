@@ -118,8 +118,9 @@ export default function StartScreen({
         <button className="menu-how" onClick={() => howTo.current?.showModal()}>
           HOW TO PLAY <span>↗</span>
         </button>
-        <FunFact className="fun-fact--menu" />
       </nav>
+
+      <FunFact />
 
       <div className="menu-brand">
         <h1>LARPLE</h1>

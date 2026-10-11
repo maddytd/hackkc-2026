@@ -2,6 +2,7 @@
 
 import asyncio
 from pathlib import Path
+import subprocess
 
 from google import genai
 from strands import Agent
@@ -38,12 +39,14 @@ async def _judge_with_agent(settings, attempt, challenge):
             tools=[],
             callback_handler=None,
         )
+        
+        processed_path = reduce_media_quality(attempt["media_path"])
         prompt = [
             {"text": "Question and private reference guide:\n" + attempt["question"]},
             {
                 "video": {
                     "format": formats[attempt["mime"]],
-                    "source": {"bytes": Path(attempt["media_path"]).read_bytes()},
+                    "source": {"bytes": Path(processed_path).read_bytes()},
                 }
             },
         ]
@@ -71,3 +74,38 @@ def judge(settings, attempt, challenge):
             }
         )
     return asyncio.run(_judge_with_agent(settings, attempt, challenge))
+
+def reduce_media_quality(media_path: str, output_path: str | None = None) -> str:
+    input_path = Path(media_path)
+    output_file = Path(output_path) if output_path else input_path.with_name(f"{input_path.stem}_ai.mp4")
+
+    # Goal:
+    # - max width 540
+    # - 24 fps
+    # - audio sample rate 48k
+    # - keep format compatible with Gemini
+    cmd = [
+        "ffmpeg",
+        "-y",
+        "-i", str(input_path),
+        "-vf",
+        "scale='min(960,iw)':'min(540,ih)':force_original_aspect_ratio=decrease,fps=24",
+        "-r", "24",
+        "-c:v", "libx264",
+        "-preset", "medium",
+        "-crf", "28",
+        "-c:a", "aac",
+        "-ar", "48000",
+        "-movflags", "+faststart",
+        str(output_file),
+    ]
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"Failed to reduce media quality for {media_path}: "
+            f"{result.stderr.strip() or result.stdout.strip()}"
+        )
+
+    return str(output_file)
+

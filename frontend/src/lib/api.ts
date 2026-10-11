@@ -119,9 +119,13 @@ export async function logout(): Promise<void> {
 
 // --- game ---
 
-// GET /health — process status + judging mode (used to show demo-only controls).
-export async function getHealth(): Promise<{ status: string; judge_mode: string }> {
-  if (!API_URL) return { status: 'ok', judge_mode: 'demo' };
+// GET /health — process status, judging mode, and whether day-switching is allowed.
+export async function getHealth(): Promise<{
+  status: string;
+  judge_mode: string;
+  day_override?: boolean;
+}> {
+  if (!API_URL) return { status: 'ok', judge_mode: 'demo', day_override: true };
   return req('/health', { auth: false });
 }
 

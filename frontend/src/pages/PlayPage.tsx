@@ -31,10 +31,12 @@ export default function PlayPage({
   onFinish,
   onError,
   day,
+  testing = false,
 }: {
   onFinish: (attempt: Attempt, recording: Blob | null) => void;
   onError: (message: string, status?: number) => void;
   day?: string;
+  testing?: boolean;
 }) {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
@@ -94,10 +96,10 @@ export default function PlayPage({
   );
 
   // Get-ready countdown, then start recording (also gives the camera a moment to warm up).
-  // Demo mode uses a longer 10s lead-in to make testing easier.
+  // Testing uses a longer 10s lead-in to make it easier.
   useEffect(() => {
     if (phase !== 'getready') return;
-    setCount(attempt?.demo ? 10 : 3);
+    setCount(testing ? 10 : 3);
     const id = window.setInterval(() => {
       setCount((c) => {
         if (c <= 1) {
@@ -112,7 +114,7 @@ export default function PlayPage({
       });
     }, 1000);
     return () => window.clearInterval(id);
-  }, [phase, stream, recorder, attempt]);
+  }, [phase, stream, recorder, testing]);
 
   // 30-second recording window.
   useEffect(() => {

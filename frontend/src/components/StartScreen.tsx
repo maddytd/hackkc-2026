@@ -8,7 +8,7 @@ export default function StartScreen({
   onLeaderboard,
   onLogout,
   authed,
-  demoMode,
+  testing,
   day,
   onPrevDay,
   onNextDay,
@@ -17,7 +17,7 @@ export default function StartScreen({
   onLeaderboard: () => void;
   onLogout: () => void;
   authed: boolean;
-  demoMode: boolean;
+  testing: boolean;
   day: string;
   onPrevDay: () => void;
   onNextDay: () => void;
@@ -63,9 +63,9 @@ export default function StartScreen({
         <Mic />
       </div>
 
-      {demoMode && (
+      {testing && (
         <div className="day-switch">
-          <span className="day-switch-label">DEMO · switch day to test prompts</span>
+          <span className="day-switch-label">TESTING · switch day to try prompts</span>
           <div className="day-switch-controls">
             <button onClick={onPrevDay} aria-label="Previous day">
               ◀

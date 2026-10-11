@@ -34,25 +34,26 @@ export default function App() {
   const [result, setResult] = useState<Attempt | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [authTick, setAuthTick] = useState(0);
-  const [demoMode, setDemoMode] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [selectedDay, setSelectedDay] = useState(todayUTC());
   const authed = apiConfigured && isAuthed();
 
-  // Learn whether the backend is in demo mode (enables the day-switcher + longer countdown).
+  // Learn whether day-switching is enabled (demo mode, or the allow_day_override flag).
+  // This also drives the longer get-ready countdown.
   useEffect(() => {
     let cancelled = false;
     getHealth()
-      .then((h) => !cancelled && setDemoMode(h.judge_mode === 'demo'))
+      .then((h) => !cancelled && setTesting(h.day_override ?? h.judge_mode === 'demo'))
       .catch(() => {});
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // In normal play, preload today's scored attempt so you can view your answer. Skipped in
-  // demo, where the day-switcher drives which prompt you load.
+  // In normal play, preload today's scored attempt so you can view your answer. Skipped when
+  // testing, where the day-switcher drives which prompt you load.
   useEffect(() => {
-    if (!authed || demoMode) return;
+    if (!authed || testing) return;
     let cancelled = false;
     currentAttempt()
       .then(async (a) => {
@@ -65,13 +66,13 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [authed, authTick, demoMode]);
+  }, [authed, authTick, testing]);
 
   const beginPlay = useCallback(() => {
     if (apiConfigured && !isAuthed()) setScreen('auth');
-    else if (!demoMode && hasScore(result)) setScreen('results');
+    else if (!testing && hasScore(result)) setScreen('results');
     else setScreen('play');
-  }, [result, demoMode]);
+  }, [result, testing]);
 
   const finish = useCallback((attempt: Attempt, recording: Blob | null) => {
     setResult(attempt);
@@ -118,7 +119,7 @@ export default function App() {
       onLeaderboard={() => setScreen('leaderboard')}
       onLogout={doLogout}
       authed={authed}
-      demoMode={demoMode}
+      testing={testing}
       day={selectedDay}
       onPrevDay={() => setSelectedDay((d) => addDaysISO(d, -1))}
       onNextDay={() => setSelectedDay((d) => addDaysISO(d, 1))}
@@ -137,7 +138,14 @@ export default function App() {
         />
       );
     case 'play':
-      return <PlayPage onFinish={finish} onError={fail} day={demoMode ? selectedDay : undefined} />;
+      return (
+        <PlayPage
+          onFinish={finish}
+          onError={fail}
+          day={testing ? selectedDay : undefined}
+          testing={testing}
+        />
+      );
     case 'results':
       return result ? (
         <ResultsPage
@@ -152,7 +160,7 @@ export default function App() {
       );
     case 'leaderboard':
       return (
-        <LeaderboardPage onBack={() => setScreen('start')} day={demoMode ? selectedDay : undefined} />
+        <LeaderboardPage onBack={() => setScreen('start')} day={testing ? selectedDay : undefined} />
       );
     default:
       return start;

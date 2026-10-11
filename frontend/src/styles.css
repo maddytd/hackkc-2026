@@ -1708,6 +1708,16 @@ body {
 .lb-backdrop .cinematic {
   opacity: 0.55;
 }
+/* Your own recording, heavily blurred, playing silently behind the board. */
+.lb-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(28px) saturate(1.15) brightness(0.75);
+  transform: scale(1.15); /* hides the soft edges the blur leaves */
+}
 .lb-tint {
   position: absolute;
   inset: 0;
@@ -1732,8 +1742,6 @@ body {
     clamp(52px, 8vw, 104px) / 0.95 'Anton',
     sans-serif;
   letter-spacing: 0.005em;
-  transform: skewX(-8deg);
-  transform-origin: left bottom;
   text-shadow: 0 5px 0 #000;
 }
 .lb-meta {
@@ -1750,7 +1758,6 @@ body {
     11px 'Archivo Black',
     sans-serif;
   letter-spacing: 0.14em;
-  transform: skewX(-12deg);
 }
 .lb-tab {
   background: var(--yellow);
@@ -1852,7 +1859,6 @@ body {
   font:
     30px/1 'Anton',
     sans-serif;
-  transform: skewX(-8deg);
 }
 .lb-row--top1 .lb-rank {
   color: var(--lb-gold);

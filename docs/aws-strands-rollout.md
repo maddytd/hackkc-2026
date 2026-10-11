@@ -152,6 +152,19 @@ This appends atomically and records the reviewer. Approval is an operator attest
 
 ## 7. Validate and release
 
+Performance calibration: Pegasus uses separate confidence and delivery anchors in
+`app/ai/aws_pipeline.py` and the shared `app/ai/rubrics/question_answering_v1.md`.
+AWS stage ratings are 0..10 and are converted to 0..5000 by the backend; the Gemini
+schema directly uses 0..5000. Judge projected conviction and observable delivery,
+not inferred internal nervousness. Compare the same human-rated recordings across
+weak, mixed, and strong performances; mocked tests do not establish grading quality.
+
+After deploying a prompt/rubric change, restart both API and worker. Existing days
+retain their saved rubric and policy, so validate in a fresh isolated database or
+activate at the next competition day. A Cloudflare tunnel can keep its existing
+URL; its serving backend must run the updated code. Do not overwrite a saved day's
+policy to mix old and new scores on the same leaderboard.
+
 1. Run backend `pytest -q`, `ruff check app tests`, and `ruff format --check app tests`. AWS tests replace networking and make no paid calls. Run frontend `npm run build` and `npm run lint`.
 2. In the isolated competition, test correct answers, convincing wrong answers, silence, quiet audio, pauses, niche-name pronunciations, varied accents, and different camera conditions. Verify Pegasus actually hears the speech and cites visible/audible evidence on YOUR endpoint.
 3. Compare the primary and backup accuracy judges against human ratings of identical recordings. Mock integration tests do not establish score quality or equivalence.

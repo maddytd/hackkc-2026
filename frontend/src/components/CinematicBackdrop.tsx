@@ -31,9 +31,9 @@ export default function CinematicBackdrop({ paused = false }: { paused?: boolean
             key={name}
             className={`cinematic-scene ${active ? 'is-active' : ''} ${previous ? 'is-previous' : ''}`}
           >
-            <img className="cinematic-glow" src={`/backgrounds/${name}.png`} alt="" />
+            <img className="cinematic-glow" src={`/backgrounds/${name}.jpg`} alt="" />
             <div className={`cinematic-plane ${index % 2 ? 'cinematic-plane--reverse' : ''}`}>
-              <img src={`/backgrounds/${name}.png`} alt="" decoding="async" />
+              <img src={`/backgrounds/${name}.jpg`} alt="" decoding="async" />
             </div>
           </div>
         );

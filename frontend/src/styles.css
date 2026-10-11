@@ -1683,16 +1683,15 @@ body {
 }
 
 /* ============ Leaderboard (game-style) ============
-   Night-blue tint over the drifting thumbnails, slanted electric-blue bars, top three edged
-   gold / silver / bronze, and your own row in Larple yellow (also pinned at the bottom). */
+   Same dark fade as the results screen over the drifting thumbnails, slanted see-through
+   dark bars, top three edged gold / silver / bronze, and your own row in Larple yellow
+   (also pinned at the bottom). */
 .lb {
-  --lb-night: #071240;
-  --lb-bar: #1b3fb0;
-  --lb-bar-deep: #10276f;
-  --lb-edge: #4a7dff;
-  --lb-ink: #c9d5ff;
+  --lb-night: #08080b;
+  --lb-edge: #ffffff59;
+  --lb-ink: #b9b9c4;
   --lb-gold: var(--yellow);
-  --lb-silver: #d9e1f5;
+  --lb-silver: #d9d9e0;
   --lb-bronze: #e3a36b;
   position: fixed;
   inset: 0;
@@ -1714,8 +1713,8 @@ body {
   inset: 0;
   z-index: 3;
   background:
-    radial-gradient(ellipse 70% 55% at 50% 0%, #2a56d855 0%, transparent 70%),
-    linear-gradient(165deg, #0a1a5cd9 0%, #071240e6 45%, #040820f5 100%);
+    radial-gradient(ellipse 60% 75% at 50% 45%, #08080bd9 0%, #08080bb8 50%, #08080b80 100%),
+    linear-gradient(180deg, #08080bb3 0%, transparent 20%, transparent 80%, #08080bcc 100%);
 }
 .lb-panel {
   position: relative;
@@ -1735,9 +1734,7 @@ body {
   letter-spacing: 0.005em;
   transform: skewX(-8deg);
   transform-origin: left bottom;
-  text-shadow:
-    0 5px 0 #000,
-    0 0 40px #2a56d899;
+  text-shadow: 0 5px 0 #000;
 }
 .lb-meta {
   display: flex;
@@ -1761,7 +1758,7 @@ body {
 }
 .lb-day {
   border: 1px solid #ffffff59;
-  color: #e6ecff;
+  color: #eee;
   background: #ffffff12;
 }
 .lb-demo {
@@ -1772,7 +1769,7 @@ body {
 }
 .lb-note {
   margin: 0;
-  color: #e6ecff;
+  color: #eee;
   font:
     17px/1.45 system-ui,
     sans-serif;
@@ -1834,14 +1831,16 @@ body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(90deg, #1b3fb0eb 0%, #10276fd9 100%);
+  background: linear-gradient(90deg, #1c1c22e0 0%, #121216c7 100%);
   border-left: 5px solid var(--lb-edge);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   box-shadow: 0 8px 20px #00000059;
   transform: skewX(-12deg);
 }
 .lb-row--top1::before {
   border-left-color: var(--lb-gold);
-  background: linear-gradient(90deg, #2a4fd0f0 0%, #13308ae0 100%);
+  background: linear-gradient(90deg, #26262eeb 0%, #16161bd6 100%);
 }
 .lb-row--top2::before {
   border-left-color: var(--lb-silver);

@@ -1103,11 +1103,15 @@ body {
 }
 
 /* Stop-early + spinner */
+/* Centred with margins, not a transform: .btn:hover sets its own transform, which would
+   replace a centring translate and throw the button sideways under the cursor. */
 .stop-btn {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 3%;
-  transform: translateX(-50%);
+  width: fit-content;
+  margin-inline: auto;
   z-index: 6;
 }
 

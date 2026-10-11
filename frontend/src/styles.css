@@ -1359,7 +1359,7 @@ body {
     sans-serif;
 }
 
-/* End-of-heist style breakdown (rows, then "Your Final Take"). */
+/* End-of-heist style breakdown (rows, then "Your Final Score"). */
 .take {
   width: 100%;
   max-width: 460px;
@@ -1396,29 +1396,6 @@ body {
 .take-row dd {
   font-variant-numeric: tabular-nums;
   text-align: right;
-}
-.take-check {
-  display: inline-block;
-  width: 15px;
-  height: 15px;
-  border: 1.5px solid #e6e6e6;
-  vertical-align: middle;
-}
-.take-check.is-done {
-  position: relative;
-  background: var(--yellow);
-  border-color: var(--yellow);
-}
-.take-check.is-done::after {
-  content: '';
-  position: absolute;
-  left: 4px;
-  top: 0;
-  width: 4px;
-  height: 9px;
-  border: solid #111;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
 }
 .take-final {
   display: flex;

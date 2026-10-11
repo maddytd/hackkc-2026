@@ -1,5 +1,5 @@
-// Keeps the player's recording in the browser for the current day only. When a new day's
-// prompt rotates in, the old recording is dropped. Nothing here leaves the device.
+// Keeps the player's most recent recording in the browser. Recording another day's round
+// replaces it. Nothing here leaves the device.
 const DB_NAME = 'larple';
 const STORE = 'recording';
 const KEY = 'today';
@@ -33,7 +33,8 @@ export async function saveRecording(day: string, blob: Blob): Promise<void> {
   }
 }
 
-// Returns today's recording, or null. Any recording from an earlier day is cleared out.
+// Returns the saved recording if it belongs to `day`, or null. A recording from another day
+// is left alone: with the day switcher on, players look at several days' results.
 export async function loadRecording(day: string): Promise<Blob | null> {
   try {
     const db = await openDb();
@@ -45,7 +46,6 @@ export async function loadRecording(day: string): Promise<Blob | null> {
     });
     db.close();
     if (entry && entry.day === day && entry.blob instanceof Blob) return entry.blob;
-    if (entry) await clearRecording();
     return null;
   } catch {
     return null;

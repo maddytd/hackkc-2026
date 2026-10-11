@@ -76,7 +76,7 @@ export default function ResultsPage({
         {recordingUrl ? (
           <Playback src={recordingUrl} />
         ) : (
-          <p className="notice">Your recording is only saved on the device you played on.</p>
+          <p className="notice">Only your latest recording is kept, on the device you played on.</p>
         )}
 
         <div className="results-buttons">

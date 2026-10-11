@@ -1,5 +1,6 @@
 import Playback from '../components/Playback';
 import ScoreCard from '../components/ScoreCard';
+import ScoreReaction from '../components/ScoreReaction';
 import type { Attempt } from '../types/game';
 
 export default function ResultsPage({
@@ -22,7 +23,10 @@ export default function ResultsPage({
     <main className="results">
       <div className="results-inner">
         {scored ? (
-          <h1 className="results-title">{verdict(scored.final_score)}</h1>
+          <>
+            <h1 className="results-title">{verdict(scored.final_score)}</h1>
+            <ScoreReaction finalScore={scored.final_score} />
+          </>
         ) : (
           <h1 className="results-title">THAT ONE DIDN'T COUNT</h1>
         )}

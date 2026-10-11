@@ -1015,6 +1015,40 @@ body {
   text-shadow: 5px 5px 0 rgba(0, 0, 0, 0.9);
 }
 
+/* Reaction image/GIF under the verdict, picked by score tier. */
+.score-reaction {
+  margin: 0;
+  width: min(360px, 100%);
+  background: #000;
+  border: 3px solid #000;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
+  transform: rotate(-1.5deg);
+  animation: score-reaction-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.score-reaction img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.score-reaction--elite {
+  border-color: var(--yellow);
+}
+@keyframes score-reaction-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-1.5deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .score-reaction {
+    animation: none;
+  }
+}
+
 .demo-badge {
   margin: 0;
   font-family: 'Anton', sans-serif;

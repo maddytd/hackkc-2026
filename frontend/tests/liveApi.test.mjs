@@ -23,7 +23,8 @@ test('current frontend API client reads AWS health and processing disclosure', a
 test('current frontend API client reads real scores in the expected UI format', async () => {
   const board = await api.getLeaderboard(process.env.LARP_SMOKE_DAY);
   assert.equal(board.demo, false);
-  assert.equal(board.timezone, 'UTC');
+  // The server labels its day rollover offset, e.g. "UTC-05:00" for US Central daylight time.
+  assert.match(board.timezone, /^UTC[+-]\d{2}:00$/);
   assert.ok(Array.isArray(board.entries));
   if (process.env.LARP_SMOKE_DAY) {
     assert.equal(board.day, process.env.LARP_SMOKE_DAY);

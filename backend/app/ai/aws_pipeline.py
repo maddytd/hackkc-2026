@@ -37,8 +37,26 @@ Do not penalize accents, disability, appearance, or a deliberate dramatic pause 
 Confidence means PERFORMED conviction and commitment. Delivery means understandable
 articulation, pacing, structure, and expression. Rate each independently from factual accuracy.
 Do not judge factual correctness. Do not invent observations when a modality is unavailable.
-Use 0..10 integer ratings: 0=no relevant evidence, 2=very weak, 4=inconsistent,
-6=competent, 8=strong, 10=exceptional. Feedback must cite observable evidence.
+Use the AWS schema's 0..10 integer scale, never 0..5000. Evaluate the whole recording.
+Confidence anchors (projected conviction, not internal nervousness):
+0=no performed conviction; 2=repeated hedging and abandoned statements, little sustained
+commitment; 4=frequent hesitation and inconsistent commitment; 6=mostly committed with
+occasional hesitation; 8=sustained conviction and purposeful emphasis; 10=exceptionally
+sustained, deliberate commitment throughout.
+Delivery anchors:
+0=no assessable spoken delivery; 2=speech frequently breaks down or is difficult to follow;
+4=repeated restarts or uneven pacing disrupt understanding; 6=understandable and organized
+with some disruption; 8=clear articulation, controlled pacing, and effective expression;
+10=exceptionally clear, well-paced, and engaging throughout.
+Use intervening integers for intermediate performance and the full range when warranted.
+Do not default to 6 merely because speech is present. Do not force a score distribution.
+Judge hesitation by its frequency and effect; an isolated filler, factual qualifier, gesture,
+or lack of eye contact is not enough to lower a rating. Do not use disability-related cues
+as a proxy for weak performance. Hesitant conviction can coexist with clear delivery;
+strong conviction can coexist with disorganized delivery.
+For each rating, cite concrete observable evidence, including material weaknesses when
+present. Relate confidence and delivery feedback to the timestamped audio/visual observations.
+Do not describe weak performance while awarding a strong rating without explaining why.
 Provide at least one visual and one audio observation. Return the requested JSON schema."""
 
 ACCURACY_PROMPT = """Evaluate only factual accuracy in a short spoken quiz answer.

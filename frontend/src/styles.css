@@ -794,6 +794,24 @@ body {
   z-index: 0;
 }
 
+/* The live camera, blurred to fill the screen behind the recording frame (fades in once live). */
+.feed-blur {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1) scale(1.15); /* mirrored like the preview; scale hides blurred edges */
+  filter: blur(32px) brightness(0.55) saturate(1.2);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+.feed-blur.is-live {
+  opacity: 1;
+}
+
 .floor {
   position: absolute;
   inset: 0;
@@ -1707,16 +1725,6 @@ body {
 }
 .lb-backdrop .cinematic {
   opacity: 0.55;
-}
-/* Your own recording, heavily blurred, playing silently behind the board. */
-.lb-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(28px) saturate(1.15) brightness(0.75);
-  transform: scale(1.15); /* hides the soft edges the blur leaves */
 }
 .lb-tint {
   position: absolute;

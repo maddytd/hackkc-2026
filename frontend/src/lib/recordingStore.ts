@@ -52,23 +52,6 @@ export async function loadRecording(day: string): Promise<Blob | null> {
   }
 }
 
-// Like loadRecording, but never deletes anything — for decoration (the leaderboard backdrop).
-export async function peekRecording(day: string): Promise<Blob | null> {
-  try {
-    const db = await openDb();
-    const entry = await new Promise<Entry | undefined>((resolve, reject) => {
-      const tx = db.transaction(STORE, 'readonly');
-      const r = tx.objectStore(STORE).get(KEY);
-      r.onsuccess = () => resolve(r.result as Entry | undefined);
-      r.onerror = () => reject(r.error);
-    });
-    db.close();
-    return entry && entry.day === day && entry.blob instanceof Blob ? entry.blob : null;
-  } catch {
-    return null;
-  }
-}
-
 export async function clearRecording(): Promise<void> {
   try {
     const db = await openDb();

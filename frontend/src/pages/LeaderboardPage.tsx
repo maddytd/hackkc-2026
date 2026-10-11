@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import BrandHome from '../components/BrandHome';
 import CinematicBackdrop from '../components/CinematicBackdrop';
 import { getAlias, getLeaderboard } from '../lib/api';
-import { peekRecording } from '../lib/recordingStore';
 import type { Leaderboard, LeaderboardEntry } from '../types/game';
 
 const fmt = (n: number) => n.toLocaleString();
@@ -26,7 +25,6 @@ function tier(rank: number): string {
 export default function LeaderboardPage({ onBack, day }: { onBack: () => void; day?: string }) {
   const [board, setBoard] = useState<Leaderboard | null>(null);
   const [error, setError] = useState(false);
-  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const me = getAlias()?.toLowerCase() ?? null;
 
   useEffect(() => {
@@ -39,42 +37,13 @@ export default function LeaderboardPage({ onBack, day }: { onBack: () => void; d
     };
   }, [day]);
 
-  // Your own recording from today, blurred, becomes the backdrop. It only exists on the device
-  // you played on; anywhere else the drifting thumbnails stay.
-  const boardDay = board?.day;
-  useEffect(() => {
-    if (!boardDay) return;
-    let url: string | null = null;
-    let cancelled = false;
-    peekRecording(boardDay).then((blob) => {
-      if (cancelled || !blob) return;
-      url = URL.createObjectURL(blob);
-      setRecordingUrl(url);
-    });
-    return () => {
-      cancelled = true;
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [boardDay]);
-
   const isMe = (e: LeaderboardEntry) => me !== null && e.alias.toLowerCase() === me;
   const mine = board?.entries.find(isMe);
 
   return (
     <main className="lb">
       <div className="lb-backdrop" aria-hidden="true">
-        {recordingUrl ? (
-          <video
-            className="lb-video"
-            src={recordingUrl}
-            autoPlay={!window.matchMedia('(prefers-reduced-motion: reduce)').matches}
-            muted
-            loop
-            playsInline
-          />
-        ) : (
-          <CinematicBackdrop />
-        )}
+        <CinematicBackdrop />
         <div className="lb-tint" />
       </div>
 

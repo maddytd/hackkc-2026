@@ -18,7 +18,32 @@ import type { Attempt } from './types/game';
 
 type Screen = 'start' | 'auth' | 'play' | 'results' | 'leaderboard';
 
-const todayUTC = () => new Date().toISOString().slice(0, 10);
+// The browser's local date: the best first guess at the server's day until /health answers.
+function todayLocal(): string {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+// Days this browser has already seen a scored round for. The menu uses them to show REPLAY
+// straight away instead of flashing PLAY while it asks the server.
+const PLAYED_DAYS_KEY = 'larple_played_days';
+
+function readPlayedDays(): string[] {
+  try {
+    const days: unknown = JSON.parse(localStorage.getItem(PLAYED_DAYS_KEY) ?? '[]');
+    return Array.isArray(days) ? days.filter((day) => typeof day === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePlayedDays(days: string[]) {
+  try {
+    localStorage.setItem(PLAYED_DAYS_KEY, JSON.stringify(days.slice(-60)));
+  } catch {
+    /* storage unavailable: the menu just asks the server first */
+  }
+}
 
 function addDaysISO(day: string, n: number): string {
   const d = new Date(day + 'T00:00:00Z');
@@ -34,12 +59,13 @@ export default function App() {
   const [authDestination, setAuthDestination] = useState<'start' | 'play'>('play');
   const [screen, setScreen] = useState<Screen>('start');
   const [result, setResult] = useState<Attempt | null>(null);
-  // This player's scored round for the day the menu is showing, if there is one.
-  const [played, setPlayed] = useState<Attempt | null>(null);
+  // The server's answer to "does this player have a scored round for `day`?".
+  const [lookup, setLookup] = useState<{ day: string; attempt: Attempt | null } | null>(null);
+  const [playedDays, setPlayedDays] = useState(readPlayedDays);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [authTick, setAuthTick] = useState(0);
   const [testing, setTesting] = useState(false);
-  const [selectedDay, setSelectedDay] = useState(todayUTC());
+  const [selectedDay, setSelectedDay] = useState(todayLocal());
   const authed = apiConfigured && isAuthed();
 
   // Learn whether day-switching is enabled (demo mode, or the allow_day_override flag).
@@ -59,27 +85,39 @@ export default function App() {
     };
   }, []);
 
+  const notePlayed = useCallback((day: string, attempt: Attempt | null) => {
+    setLookup({ day, attempt });
+    setPlayedDays((days) => {
+      if (days.includes(day) === !!attempt) return days;
+      return attempt ? [...days, day] : days.filter((d) => d !== day);
+    });
+  }, []);
+  useEffect(() => writePlayedDays(playedDays), [playedDays]);
+
   // Learn whether the day on the menu has already been played, so the menu can offer REPLAY.
   // The day-switcher picks the day when testing; otherwise the server uses today.
-  const menuDay = testing ? selectedDay : undefined;
   useEffect(() => {
     if (!authed) return;
     let cancelled = false;
-    currentAttempt(menuDay)
+    currentAttempt(testing ? selectedDay : undefined)
       .then((a) => {
-        if (!cancelled) setPlayed(hasScore(a) ? a : null);
+        if (cancelled) return;
+        const scored = hasScore(a) ? a : null;
+        notePlayed(scored?.day ?? selectedDay, scored);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [authed, authTick, menuDay]);
-  // Ignore a round fetched for a day the switcher has since moved away from.
-  const replay = authed && !!played && (!testing || played.day === selectedDay);
+  }, [authed, authTick, testing, selectedDay, notePlayed]);
+  // Until the server has answered for the day on the menu, go by what this browser remembers.
+  const played = lookup?.day === selectedDay ? lookup.attempt : null;
+  const replay =
+    authed && (lookup?.day === selectedDay ? !!played : playedDays.includes(selectedDay));
 
   const finish = useCallback((attempt: Attempt, recording: Blob | null) => {
     setResult(attempt);
-    if (hasScore(attempt)) setPlayed(attempt);
+    if (hasScore(attempt) && attempt.day) notePlayed(attempt.day, attempt);
     setRecordingUrl(recording ? URL.createObjectURL(recording) : null);
     setScreen('results');
     // A round that was already played arrives without its recording; show the saved one
@@ -88,7 +126,7 @@ export default function App() {
       void loadRecording(attempt.day).then((blob) => {
         if (blob) setRecordingUrl(URL.createObjectURL(blob));
       });
-  }, []);
+  }, [notePlayed]);
 
   const beginPlay = useCallback(() => {
     if (apiConfigured && !isAuthed()) {
@@ -96,14 +134,16 @@ export default function App() {
         setAuthDestination('play');
         setScreen('auth');
       });
-    } else if (replay && played) finish(played, null);
+    } else if (played) finish(played, null);
+    // Also reached when REPLAY is shown from memory alone: the play page finds the round.
     else setScreen('play');
-  }, [replay, played, finish]);
+  }, [played, finish]);
 
   const fail = useCallback((message: string, status?: number) => {
     if (status === 401) {
       setResult(null);
-      setPlayed(null);
+      setLookup(null);
+      setPlayedDays([]);
       setRecordingUrl(null);
       setAuthTick((t) => t + 1);
       setScreen('auth');
@@ -129,7 +169,8 @@ export default function App() {
     await logout();
     await clearRecording();
     setResult(null);
-    setPlayed(null);
+    setLookup(null);
+    setPlayedDays([]);
     setRecordingUrl(null);
     smoothly(() => {
       setAuthTick((t) => t + 1);

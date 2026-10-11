@@ -460,8 +460,8 @@ body {
   padding: 12px 14px 4px;
   background: #0b0b0fb8;
   border-left: 3px solid var(--yellow);
-  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   text-shadow: none;
   letter-spacing: normal;
   font:
@@ -604,8 +604,50 @@ body {
   color: #eee;
 }
 .menu-dialog::backdrop {
-  background: #000b;
-  backdrop-filter: blur(8px);
+  background: #0007;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+/* The dialog springs up softly and eases back down when dismissed. */
+.menu-dialog[open] {
+  animation: dialog-in 0.42s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+.menu-dialog[open]::backdrop {
+  animation: dialog-backdrop-in 0.3s ease both;
+}
+.menu-dialog[data-closing] {
+  animation: dialog-out 0.26s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+.menu-dialog[data-closing]::backdrop {
+  animation: dialog-backdrop-out 0.26s ease both;
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(14px);
+  }
+}
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+}
+@keyframes dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dialog-backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-dialog[open],
+  .menu-dialog[open]::backdrop {
+    animation: none;
+  }
 }
 .scoring-screen {
   position: absolute;
@@ -741,10 +783,13 @@ body {
   width: min(460px, 100%);
   max-height: 85dvh;
   overflow: auto;
-  background: #14121f;
-  border: 3px solid #000;
-  border-radius: 16px;
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.7);
+  /* See-through glass, matching the sign-up card. */
+  background: #0b0b0f66;
+  border: 1px solid #ffffff4d;
+  border-radius: 22px;
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+  box-shadow: 0 24px 60px #0008;
   padding: 26px 26px 30px;
 }
 
@@ -1096,8 +1141,8 @@ body {
   background: #0b0b0f59;
   border: 1px solid #ffffff4d;
   border-radius: 18px;
-  backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
   box-shadow: 0 24px 60px #0007;
   view-transition-name: auth-card;
 }
@@ -1372,8 +1417,8 @@ body {
   padding: 6px 22px 18px;
   /* Partly see-through so the drifting thumbnails show faintly behind the rows. */
   background: #12121466;
-  backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
   box-shadow: 0 18px 50px #0006;
   text-align: left;
   font-family: system-ui, sans-serif;
@@ -1834,8 +1879,8 @@ body {
   z-index: -1;
   background: linear-gradient(90deg, #1c1c22e0 0%, #121216c7 100%);
   border-left: 5px solid var(--lb-edge);
-  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   box-shadow: 0 8px 20px #00000059;
   transform: skewX(-12deg);
 }
@@ -1967,10 +2012,3 @@ body {
   }
 }
 
-.processing-notice {
-  max-width: 36rem;
-  margin: 1rem auto;
-  padding: 0 1rem;
-  font-size: 0.85rem;
-  line-height: 1.5;
-}

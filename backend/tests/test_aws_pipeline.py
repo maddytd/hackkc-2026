@@ -8,9 +8,10 @@ import pytest
 from botocore.exceptions import ClientError
 from conftest import start, upload
 
-from app.ai.aws_pipeline import CallBudgetExhausted, RequestLedger
+from app.ai.aws_pipeline import CallBudgetExhausted, RequestLedger, combine
 from app.ai.client import judge
 from app.database import connect, initialize
+from app.schemas import AccuracyJudgment, PerformanceEvidence
 from app.services import attempts
 from app.worker import run_once
 
@@ -296,3 +297,25 @@ def test_schema_migration_preserves_existing_competition(setup):
     with connect(settings) as db:
         assert db.execute("PRAGMA user_version").fetchone()[0] == 2
         assert db.execute("SELECT id FROM attempts").fetchone()[0] == first["id"]
+
+
+@pytest.mark.parametrize(
+    ("transcript", "accuracy_rating", "expected_confidence"),
+    [
+        ("", 0, 0),  # silence
+        ("you", 0, 0),  # a stray word invented from silence
+        ("Helium.", 10, 4500),  # a correct one-word answer keeps its performance scores
+        ("It is definitely hydrogen, no doubt.", 0, 4500),  # a real bluff still earns points
+    ],
+)
+def test_silence_earns_nothing_but_a_spoken_bluff_still_scores(
+    transcript, accuracy_rating, expected_confidence
+):
+    evidence = PerformanceEvidence.model_validate({**performance(), "transcript": transcript})
+    accuracy = AccuracyJudgment.model_validate(
+        {"accuracy": {"rating": accuracy_rating, "feedback": "Graded against the guide."}}
+    )
+    result = combine(evidence, accuracy)
+    assert result.accuracy.rating == accuracy_rating * 500
+    assert result.confidence.rating == expected_confidence
+    assert result.delivery.rating == (4000 if expected_confidence else 0)

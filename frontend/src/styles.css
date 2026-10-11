@@ -1015,10 +1015,123 @@ body {
   text-shadow: 5px 5px 0 rgba(0, 0, 0, 0.9);
 }
 
+.results-subtitle {
+  margin: -6px 0 0;
+  max-width: 34ch;
+  color: #eee;
+  font:
+    clamp(15px, 2.6vw, 19px)/1.35 system-ui,
+    sans-serif;
+}
+
+/* End-of-heist style breakdown (rows, then "Your Final Take"). */
+.take {
+  width: 100%;
+  max-width: 460px;
+  padding: 6px 22px 18px;
+  background: #121214f2;
+  box-shadow: 0 18px 50px #0008;
+  text-align: left;
+  font-family: system-ui, sans-serif;
+}
+.take-rows {
+  margin: 0;
+  padding: 10px 0 12px;
+  border-top: 1px solid #ffffff45;
+  border-bottom: 1px solid #ffffff45;
+}
+.take-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 5px 8px;
+  font-size: 15px;
+  color: #e6e6e6;
+  animation: take-row-in 0.35s ease both;
+}
+.take-row dt,
+.take-row dd {
+  margin: 0;
+}
+.take-row dd {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.take-check {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid #e6e6e6;
+  vertical-align: middle;
+}
+.take-check.is-done {
+  position: relative;
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+.take-check.is-done::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0;
+  width: 4px;
+  height: 9px;
+  border: solid #111;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.take-final {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  padding-top: 14px;
+  font-size: 17px;
+  color: #fff;
+  animation: take-row-in 0.4s ease both;
+}
+.take-final strong {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  min-width: 6ch;
+}
+.take-notes {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 14px 8px 0;
+  border-top: 1px solid #ffffff1f;
+  display: grid;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #b9b9c4;
+}
+.take-notes strong {
+  color: var(--yellow);
+  font-weight: 600;
+  margin-right: 4px;
+}
+@keyframes take-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .take-row,
+  .take-final {
+    animation: none;
+  }
+}
+
 /* Reaction image/GIF under the verdict, picked by score tier. */
 .score-reaction {
   margin: 0;
-  width: min(360px, 100%);
+  width: min(280px, 100%);
   background: #000;
   border: 3px solid #000;
   box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.9);
@@ -1030,7 +1143,7 @@ body {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 46vh;
+  max-height: 36vh;
   object-fit: cover;
 }
 .score-reaction {

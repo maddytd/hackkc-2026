@@ -10,7 +10,8 @@ export function reactionTier(finalScore: number): ReactionTier {
 
 export type Reaction = {
   src: string;
-  // 'video' plays muted and looping like a GIF; Tenor's MP4s are far smaller than its GIFs.
+  // 'image' covers stills and GIFs. 'video' (muted, looping) is lighter, but some browsers
+  // (e.g. Safari) refuse to autoplay it and show a black box, so the reactions use GIFs.
   kind: 'image' | 'video';
   // Shown as a small "via Tenor" credit for media embedded from Tenor.
   viaTenor?: boolean;
@@ -27,16 +28,30 @@ export const REACTIONS: Record<ReactionTier, Reaction> = {
   },
   // 2500-3999: wide-eyed stare
   good: {
-    src: 'https://media.tenor.com/JuIJXxDnQIMAAAPo/flight-reacts-stranger-things.mp4',
-    kind: 'video',
+    src: 'https://media.tenor.com/JuIJXxDnQIMAAAAd/flight-reacts-stranger-things.gif',
+    kind: 'image',
     viaTenor: true,
   },
   // 1000-2499: unimpressed stare (no GIF of this one exists; still supplied by the team)
   meh: { src: '/reactions/meh.jpg', kind: 'image' },
   // < 1000: jaw drop
   bad: {
-    src: 'https://media.tenor.com/hZ8DNkvJitgAAAPo/flight-reacts-flight-reacts-stare.mp4',
-    kind: 'video',
+    src: 'https://media.tenor.com/hZ8DNkvJitgAAAAd/flight-reacts-flight-reacts-stare.gif',
+    kind: 'image',
     viaTenor: true,
   },
 };
+
+// Start downloading every reaction in the background (called when the play screen opens), so
+// the one the player earns is already cached when results appear instead of loading then.
+const preloaded: HTMLImageElement[] = [];
+export function preloadReactions() {
+  if (preloaded.length) return;
+  for (const reaction of Object.values(REACTIONS)) {
+    if (reaction.kind !== 'image') continue;
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = reaction.src;
+    preloaded.push(img); // keep a reference so the download isn't dropped
+  }
+}

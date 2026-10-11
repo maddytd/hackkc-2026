@@ -7,6 +7,7 @@ import { useRecorder } from '../hooks/useRecorder';
 import { useWebcam } from '../hooks/useWebcam';
 import { ApiError, getAttempt, startAttempt, uploadRecording } from '../lib/api';
 import { RESPONSE_SECONDS } from '../lib/constants';
+import { preloadReactions } from '../lib/reactions';
 import { saveRecording } from '../lib/recordingStore';
 import type { Attempt } from '../types/game';
 
@@ -47,6 +48,9 @@ export default function PlayPage({
   const startedAt = useRef(0);
   const { videoRef, state: camState, stream } = useWebcam(true);
   const recorder = useRecorder();
+
+  // Fetch the results-screen reactions while the player records, so they show instantly.
+  useEffect(() => preloadReactions(), []);
 
   // Load today's attempt once the camera is live, so the clock never starts on a dead camera.
   useEffect(() => {

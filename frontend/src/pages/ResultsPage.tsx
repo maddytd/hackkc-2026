@@ -37,6 +37,14 @@ export default function ResultsPage({
         <CinematicBackdrop sources={RESULT_SCENES} />
         <div className="results-fade" />
       </div>
+      <nav className="results-nav" aria-label="Results">
+        <button onClick={onBack}>
+          <span>←</span> HOME
+        </button>
+        <button onClick={onLeaderboard}>
+          LEADERBOARD <span>↗</span>
+        </button>
+      </nav>
       <div className="results-inner">
         {scored ? (
           <>

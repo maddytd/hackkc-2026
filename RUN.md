@@ -127,3 +127,23 @@ Because it's demo mode, you'll see the day switcher and a fixed demo score.
 - For **real AI scoring**, set `LARP_JUDGE_MODE=gemini` + `LARP_GEMINI_API_KEY` in `backend/.env`,
   use a video-capable model, and delete `backend/storage/game.db*` first (the day's judging
   mode is locked once its first attempt is created).
+
+## Everything in Docker (one machine)
+
+`compose.public.yaml` runs the API, the judge worker and the website together. It reads
+`backend/.env`, and AWS judging uses the `larple` profile in `~/.aws/credentials`.
+
+```
+docker compose -f compose.public.yaml up --build -d
+```
+
+Open http://localhost:8080. To also get a temporary public HTTPS link (needed for cameras on
+other devices), add the `public` profile and read the link from the tunnel's log:
+
+```
+docker compose -f compose.public.yaml --profile public up --build -d
+docker compose -f compose.public.yaml logs tunnel
+```
+
+Anyone with that link plays on your AWS account, capped by `LARP_MAX_DAILY_JOBS`. Stop
+everything with `docker compose -f compose.public.yaml --profile public down`.

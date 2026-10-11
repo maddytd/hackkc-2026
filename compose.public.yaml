@@ -1,0 +1,50 @@
+# The whole game on one machine with Docker.
+#
+#   docker compose -f compose.public.yaml up --build -d
+#       -> http://localhost:8080 (this computer only)
+#
+#   docker compose -f compose.public.yaml --profile public up --build -d
+#       -> also opens a temporary public HTTPS link (see `docker compose ... logs tunnel`)
+#
+# Settings come from backend/.env. AWS judging reads the profile in ~/.aws/credentials.
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: backend/Dockerfile
+  env_file: backend/.env
+  environment:
+    LARP_STORAGE_DIR: /data
+    # Public play: everyone is locked to today's question.
+    LARP_ALLOW_DAY_OVERRIDE: "false"
+    # Every player arrives through the web container, so they share one address.
+    LARP_LOGIN_ATTEMPTS_PER_MINUTE: "600"
+    AWS_PROFILE: ${AWS_PROFILE:-larple}
+  volumes:
+    - larple-public-data:/data
+    - ${HOME}/.aws:/home/larple/.aws:ro
+  restart: unless-stopped
+
+services:
+  api:
+    <<: *backend
+  worker:
+    <<: *backend
+    command: ["python", "-m", "app.worker"]
+  web:
+    build:
+      context: frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+  tunnel:
+    profiles: ["public"]
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate --url http://web:80
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  larple-public-data:

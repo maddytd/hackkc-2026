@@ -60,7 +60,9 @@ export default function ResultsPage({
           </>
         ) : (
           <>
-            <h1 className="results-title">THAT ONE DIDN'T COUNT</h1>
+            <h1 className="results-title">
+              {attempt.status === 'judge_failed' ? 'SCORING UNAVAILABLE' : "THAT ONE DIDN'T COUNT"}
+            </h1>
             {attempt.question && (
               <div className="results-question">
                 <span className="tag">{attempt.question.category}</span>

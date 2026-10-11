@@ -54,7 +54,9 @@ pip install -c requirements.lock -e ".[dev]"
 cp .env.example .env          # Windows: copy .env.example .env
 ```
 
-The copied `backend/.env` defaults to **real Gemini scoring** with the day-switcher on.
+The copied `backend/.env` defaults to **real Gemini scoring** with the day-switcher off. New competition days use the niche library; gameplay does not generate questions through Gemini.
+
+For the new AWS workflow (no Gemini key required), follow [AWS account setup and rollout](docs/aws-strands-rollout.md) before setting `LARP_JUDGE_MODE=aws`. Start in a separate test storage directory.
 
 - **For real AI scoring:** put your own key in `LARP_GEMINI_API_KEY` (from Google AI Studio)
   and keep `LARP_JUDGE_MODE=gemini`. Confirm `LARP_GEMINI_MODEL` is a video-capable model

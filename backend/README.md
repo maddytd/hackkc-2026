@@ -1,6 +1,8 @@
 # Larple backend
 
-FastAPI + SQLite backend for the daily question-answering game, with a Strands Agents judge using the Gemini model provider. Scores combine accuracy, performed confidence, and delivery equally. Python 3.11+ and FFmpeg (`ffprobe` on PATH) are required.
+FastAPI + SQLite backend for the daily game, with Strands judging in `aws`, legacy `gemini`, or fixed-score `demo` mode. Scores combine accuracy, performed confidence, and delivery equally. Python 3.11+ and FFmpeg (`ffprobe` on PATH) are required.
+
+New days use the niche library. For AWS account setup, Pegasus audiovisual judging, Bedrock accuracy fallback, and offline cheap drafting, see [AWS and Strands rollout](../docs/aws-strands-rollout.md). Gemini-specific instructions below apply only to legacy mode.
 
 ## Run locally
 
@@ -62,7 +64,7 @@ Start request:
 {"consent_to_ai_processing":true}
 ```
 
-Before asking for consent, explain that the video is sent to Google for AI judging. Only reveal the returned question once recording is ready. `created` and `deadline` are Unix timestamps in seconds; the recording window is 30 seconds, with another 120 seconds to upload. The server allows one second of media encoding tolerance.
+Before asking for consent, show the provider notice from `/health`: AWS uses Bedrock with TwelveLabs and configured judging models; legacy mode uses Google; demo invokes no provider. Only reveal the returned question once recording is ready. `created` and `deadline` are Unix timestamps in seconds; the recording window is 30 seconds, with another 120 seconds to upload. The server allows one second of media encoding tolerance.
 
 Upload a browser Blob directly, **not** FormData:
 
@@ -99,7 +101,7 @@ The judge is a fresh Strands `Agent` for each submission, using `GeminiModel` wi
 
 Gemini receives the complete short video, including audio, plus the private question criteria. Its structured response is validated as integer ratings from 0 through 10. The server converts ratings to points and calculates the average. Provider retries are disabled so the persistent worker owns the retry budget; the entire agent call has a 100-second deadline, shorter than the worker lease. Rubric text explicitly treats video content as untrusted and separates accuracy from confidence; this reduces but does not eliminate judge manipulation.
 
-`LARP_MAX_DAILY_JOBS` caps accepted jobs by UTC upload date. With three maximum judge tries, each accepted job can make at most three provider calls, including attempts interrupted by worker crashes. This is a usage cap, **not a dollar-denominated billing limit**; also set provider-side quotas/budget alerts. Existing jobs can be processed on later days. New starts are blocked when today's accepted-job cap is reached, although competing uploads may fill capacity after a prompt was revealed.
+`LARP_MAX_DAILY_JOBS` caps accepted jobs by UTC upload date. Legacy judging permits at most three worker calls. AWS separately reserves every model request in SQLite and enforces the saved `LARP_MAX_AI_CALLS_PER_ATTEMPT` budget (default six), including fallback and interrupted requests. Offline draft generation has its own usage outside this gameplay budget. These are usage caps, **not dollar-denominated billing limits**; also set provider quotas and budget alerts. Existing jobs can be processed on later days.
 
 The sample pool uses six comparable interview/opinion questions with explicit evaluation criteria. Add verified reference answers for factual questions. Changes to content or the rubric take effect on the next competition day.
 
@@ -135,4 +137,4 @@ ruff format --check app tests
 
 Tests cover daily limits, concurrent starts, authentication, ownership, replacements, duplicate uploads, midnight rollover, stable rankings, worker recovery, bounded retries, retention, score validation, and the provider request contract. Media integration tests use locally generated clips when FFmpeg is installed.
 
-Schema version 1 initializes automatically. Future schema changes must introduce explicit migrations rather than changing existing tables in place.
+Schema version 2 initializes automatically, with an additive migration from version 1 for AWS call accounting, stage caches, cooldowns, and model provenance. Back up a live database while services are stopped before updating. Existing tables and scores are preserved.

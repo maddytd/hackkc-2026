@@ -20,7 +20,7 @@ function tier(rank: number): string {
   return rank <= 3 ? `lb-row--top${rank}` : '';
 }
 
-// Game-style daily leaderboard: slanted rows, top three edged gold/silver/bronze,
+// Game-style daily leaderboard: transparent rows, top three ranks gold/silver/bronze,
 // your own row in Larple yellow and pinned to the bottom.
 export default function LeaderboardPage({ onBack, day }: { onBack: () => void; day?: string }) {
   const [board, setBoard] = useState<Leaderboard | null>(null);

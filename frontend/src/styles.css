@@ -628,6 +628,11 @@ body {
     16px system-ui,
     sans-serif;
 }
+.scoring-status .scoring-slow {
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.85;
+}
 .scoring-status .spinner {
   width: 22px;
   height: 22px;
@@ -907,7 +912,8 @@ body {
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
+  place-content: center;
+  gap: 8px;
   padding: 12px;
   text-align: center;
   font-size: 0.85rem;
@@ -1682,8 +1688,8 @@ body {
 }
 
 /* ============ Leaderboard (game-style) ============
-   Same dark fade as the results screen over the drifting thumbnails, slanted see-through
-   dark bars, top three edged gold / silver / bronze, and your own row in Larple yellow
+   Same dark fade as the results screen over the drifting thumbnails, transparent
+   rows, top three numbers in gold / silver / bronze, and your own row in Larple yellow
    (also pinned at the bottom). */
 .lb {
   --lb-night: #08080b;
@@ -1820,8 +1826,7 @@ body {
   animation: lb-row-in 0.55s cubic-bezier(0.32, 0.72, 0, 1) both;
   animation-delay: calc(var(--i, 0) * 45ms);
 }
-/* The slanted bar sits behind the row so the text stays upright. */
-.lb-row::before,
+/* Keep the pinned summary bar; ranking rows have no background or left edge. */
 .lb-you::before {
   content: '';
   position: absolute;
@@ -1833,16 +1838,6 @@ body {
   -webkit-backdrop-filter: blur(4px);
   box-shadow: 0 8px 20px #00000059;
   transform: skewX(-12deg);
-}
-.lb-row--top1::before {
-  border-left-color: var(--lb-gold);
-  background: linear-gradient(90deg, #26262eeb 0%, #16161bd6 100%);
-}
-.lb-row--top2::before {
-  border-left-color: var(--lb-silver);
-}
-.lb-row--top3::before {
-  border-left-color: var(--lb-bronze);
 }
 .lb-rank {
   font:
@@ -1894,15 +1889,17 @@ body {
   font-size: 26px;
 }
 
-/* You: solid Larple yellow with dark ink. */
-.lb-row.is-me::before,
+/* Your ranking text stays yellow over the transparent row. */
+.lb-row.is-me,
+.lb-row.is-me .lb-rank,
+.lb-row.is-me .lb-stat {
+  color: var(--yellow);
+}
+/* Pinned summary: solid Larple yellow with dark ink. */
 .lb-you::before {
   background: var(--yellow);
   border-left-color: #fff;
 }
-.lb-row.is-me,
-.lb-row.is-me .lb-rank,
-.lb-row.is-me .lb-stat,
 .lb-you {
   color: var(--lb-night);
 }
@@ -1968,4 +1965,12 @@ body {
   .lb-you-label {
     font-size: 9px;
   }
+}
+
+.processing-notice {
+  max-width: 36rem;
+  margin: 1rem auto;
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }

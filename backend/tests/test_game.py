@@ -1,17 +1,19 @@
 import json
+import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
 import pytest
-from fastapi.testclient import TestClient
 from conftest import start, upload
+from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.database import connect
 from app.main import create_app
 from app.schemas import Judgment
 from app.services import attempts
+from app.worker import main as worker_main
 from app.worker import run_once
 
 
@@ -37,7 +39,7 @@ def test_demo_seed_toggle_adds_and_removes_only_demo_scores(tmp_path, judge_mode
         assert response.status_code == 201
         player_id = response.json()["player_id"]
 
-        day = attempts.day_at(time.time())
+        day = attempts.day_at(time.time(), settings)
         with connect(settings, write=True) as db:
             challenge = db.execute(
                 "SELECT questions FROM challenges WHERE day=?", (day,)
@@ -106,7 +108,7 @@ def test_failed_upload_same_prompt_and_limit(setup):
         else:
             assert replacement.status_code == 200
             attempt = replacement.json()
-            assert attempt["day"] == attempts.day_at(time.time())
+            assert attempt["day"] == attempts.day_at(time.time(), settings)
             assert upload(client, headers, aid).status_code == 409
     assert not list(settings.media_dir.iterdir())
 
@@ -174,9 +176,72 @@ def test_deadline_and_no_restart(setup):
     assert client.post(f"/attempts/{aid}/replacement", headers=headers).status_code == 409
 
 
+def test_reopening_expired_recording_does_not_offer_another_take(setup):
+    client, settings, headers = setup
+    aid = start(client, headers)["id"]
+    with connect(settings, write=True) as db:
+        db.execute("UPDATE attempts SET deadline=? WHERE id=?", (time.time() - 1, aid))
+    # No worker sweep has run yet.
+    reopened = start(client, headers)
+    assert reopened["id"] == aid
+    assert reopened["status"] == "expired"
+
+
+def test_worker_loop_survives_a_failed_pass(setup, monkeypatch):
+    _, settings, _ = setup
+    passes = []
+
+    def run(_settings):
+        passes.append(1)
+        if len(passes) == 1:
+            raise sqlite3.OperationalError("database is locked")
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr("app.worker.Settings", lambda: settings)
+    monkeypatch.setattr("app.worker.run_once", run)
+    monkeypatch.setattr("app.worker.time.sleep", lambda _seconds: None)
+    with pytest.raises(KeyboardInterrupt):
+        worker_main()
+    assert len(passes) == 2
+
+
+def test_competition_day_rolls_over_at_local_midnight(setup):
+    _, settings, _ = setup
+    evening = datetime(2026, 10, 11, 23, 30, tzinfo=UTC).timestamp()
+    central = settings.model_copy(update={"day_utc_offset_hours": -5})
+    utc = settings.model_copy(update={"day_utc_offset_hours": 0})
+    # 23:30 UTC is 6:30 PM Central; 01:30 UTC the next day is still 8:30 PM Central.
+    assert attempts.day_at(evening, central) == attempts.day_at(evening + 7200, central)
+    assert attempts.day_at(evening, utc) != attempts.day_at(evening + 7200, utc)
+
+
+def test_sign_up_has_no_rate_limit_but_login_does(setup):
+    client, settings, _ = setup
+    with connect(settings, write=True) as db:
+        # A full login budget must not block new accounts from the same address.
+        db.execute(
+            "INSERT OR REPLACE INTO rate_limits VALUES ('auth:testclient',?,?)",
+            (time.time(), settings.login_attempts_per_minute),
+        )
+    body = {"alias": "newcomer", "password": "test-password"}
+    assert client.post("/auth/register", json=body).status_code == 201
+    assert client.post("/auth/login", json=body).status_code == 429
+
+
+def test_health_reports_scoring_readiness(setup, monkeypatch):
+    client, _, _ = setup
+    health = client.get("/health").json()
+    assert health["status"] == "ok" and health["ready"] and health["issues"] == []
+    monkeypatch.setattr("app.services.attempts.shutil.which", lambda _: None)
+    health = client.get("/health").json()
+    assert health["status"] == "ok" and not health["ready"] and health["issues"]
+
+
 def test_midnight_keeps_original_competition_day(setup, monkeypatch):
     client, settings, headers = setup
+    # Five seconds before local midnight in the configured competition timezone.
     old = datetime(2026, 10, 10, 23, 59, 55, tzinfo=UTC).timestamp()
+    old -= settings.day_utc_offset_hours * 3600
     monkeypatch.setattr("time.time", lambda: old)
     attempt = start(client, headers)
     monkeypatch.setattr("time.time", lambda: old + 10)
@@ -266,7 +331,7 @@ def test_capacity_prevents_new_prompt(setup):
     with connect(settings, write=True) as db:
         db.execute(
             "INSERT INTO daily_usage VALUES (?,?)",
-            (attempts.day_at(time.time()), settings.max_daily_jobs),
+            (attempts.day_at(time.time(), settings), settings.max_daily_jobs),
         )
     assert (
         client.post(
@@ -314,7 +379,7 @@ def test_retention_removes_failed_recording(setup):
     assert client.get(f"/attempts/{aid}", headers=headers).json()["status"] == "judge_failed"
 
 
-@pytest.mark.parametrize("value", [-1, 11, 6.5, "8", True])
+@pytest.mark.parametrize("value", [-1, 5001, 6.5, "8", True])
 def test_judge_rating_validation(value):
     category = {"rating": value, "feedback": "Example"}
     with pytest.raises(ValueError):

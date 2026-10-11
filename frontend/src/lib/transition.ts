@@ -9,5 +9,8 @@ export function smoothly(update: () => void): void {
     update();
     return;
   }
-  document.startViewTransition(() => flushSync(update));
+  const transition = document.startViewTransition(() => flushSync(update));
+  // A skipped transition (hidden tab, overlapping change) still applies the update.
+  transition.ready.catch(() => {});
+  transition.finished.catch(() => {});
 }

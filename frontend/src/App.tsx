@@ -34,6 +34,8 @@ export default function App() {
   const [authDestination, setAuthDestination] = useState<'start' | 'play'>('play');
   const [screen, setScreen] = useState<Screen>('start');
   const [result, setResult] = useState<Attempt | null>(null);
+  // This player's scored round for the day the menu is showing, if there is one.
+  const [played, setPlayed] = useState<Attempt | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
   const [authTick, setAuthTick] = useState(0);
   const [testing, setTesting] = useState(false);
@@ -57,36 +59,27 @@ export default function App() {
     };
   }, []);
 
-  // In normal play, preload today's scored attempt so you can view your answer. Skipped when
-  // testing, where the day-switcher drives which prompt you load.
+  // Learn whether the day on the menu has already been played, so the menu can offer REPLAY.
+  // The day-switcher picks the day when testing; otherwise the server uses today.
+  const menuDay = testing ? selectedDay : undefined;
   useEffect(() => {
-    if (!authed || testing) return;
+    if (!authed) return;
     let cancelled = false;
-    currentAttempt()
-      .then(async (a) => {
-        if (cancelled || !hasScore(a) || !a) return;
-        setResult(a);
-        const blob = await loadRecording(a.day);
-        if (!cancelled && blob) setRecordingUrl(URL.createObjectURL(blob));
+    currentAttempt(menuDay)
+      .then((a) => {
+        if (!cancelled) setPlayed(hasScore(a) ? a : null);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [authed, authTick, testing]);
-
-  const beginPlay = useCallback(() => {
-    if (apiConfigured && !isAuthed()) {
-      smoothly(() => {
-        setAuthDestination('play');
-        setScreen('auth');
-      });
-    } else if (!testing && hasScore(result)) setScreen('results');
-    else setScreen('play');
-  }, [result, testing]);
+  }, [authed, authTick, menuDay]);
+  // Ignore a round fetched for a day the switcher has since moved away from.
+  const replay = authed && !!played && (!testing || played.day === selectedDay);
 
   const finish = useCallback((attempt: Attempt, recording: Blob | null) => {
     setResult(attempt);
+    if (hasScore(attempt)) setPlayed(attempt);
     setRecordingUrl(recording ? URL.createObjectURL(recording) : null);
     setScreen('results');
     // A round that was already played arrives without its recording; show the saved one
@@ -97,9 +90,20 @@ export default function App() {
       });
   }, []);
 
+  const beginPlay = useCallback(() => {
+    if (apiConfigured && !isAuthed()) {
+      smoothly(() => {
+        setAuthDestination('play');
+        setScreen('auth');
+      });
+    } else if (replay && played) finish(played, null);
+    else setScreen('play');
+  }, [replay, played, finish]);
+
   const fail = useCallback((message: string, status?: number) => {
     if (status === 401) {
       setResult(null);
+      setPlayed(null);
       setRecordingUrl(null);
       setAuthTick((t) => t + 1);
       setScreen('auth');
@@ -125,6 +129,7 @@ export default function App() {
     await logout();
     await clearRecording();
     setResult(null);
+    setPlayed(null);
     setRecordingUrl(null);
     smoothly(() => {
       setAuthTick((t) => t + 1);
@@ -145,6 +150,7 @@ export default function App() {
       }
       authed={authed}
       testing={testing}
+      replay={replay}
       day={selectedDay}
       onPrevDay={() => setSelectedDay((d) => addDaysISO(d, -1))}
       onNextDay={() => setSelectedDay((d) => addDaysISO(d, 1))}

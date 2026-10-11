@@ -10,6 +10,7 @@ export default function StartScreen({
   onCreateAccount,
   authed,
   testing,
+  replay,
   day,
   onPrevDay,
   onNextDay,
@@ -20,6 +21,8 @@ export default function StartScreen({
   onCreateAccount: () => void;
   authed: boolean;
   testing: boolean;
+  // The day on the menu already has a scored round: offer to watch it back instead.
+  replay: boolean;
   day: string;
   onPrevDay: () => void;
   onNextDay: () => void;
@@ -140,9 +143,13 @@ export default function StartScreen({
         <p className="menu-eyebrow">30 SECONDS. ALL CONFIDENCE.</p>
         <button className="menu-play" onClick={onStart}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 3 21 12 6 21Z" />
+            {replay ? (
+              <path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8Z" />
+            ) : (
+              <path d="M6 3 21 12 6 21Z" />
+            )}
           </svg>
-          PLAY
+          {replay ? 'REPLAY' : 'PLAY'}
         </button>
         <button className="menu-how" onClick={() => howTo.current?.showModal()}>
           HOW TO PLAY <span>↗</span>

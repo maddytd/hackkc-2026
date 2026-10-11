@@ -30,6 +30,7 @@ function hasScore(a: Attempt | null): boolean {
 }
 
 export default function App() {
+  const [authDestination, setAuthDestination] = useState<'start' | 'play'>('play');
   const [screen, setScreen] = useState<Screen>('start');
   const [result, setResult] = useState<Attempt | null>(null);
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
@@ -69,8 +70,10 @@ export default function App() {
   }, [authed, authTick, testing]);
 
   const beginPlay = useCallback(() => {
-    if (apiConfigured && !isAuthed()) setScreen('auth');
-    else if (!testing && hasScore(result)) setScreen('results');
+    if (apiConfigured && !isAuthed()) {
+      setAuthDestination('play');
+      setScreen('auth');
+    } else if (!testing && hasScore(result)) setScreen('results');
     else setScreen('play');
   }, [result, testing]);
 
@@ -118,6 +121,10 @@ export default function App() {
       onStart={beginPlay}
       onLeaderboard={() => setScreen('leaderboard')}
       onLogout={doLogout}
+      onCreateAccount={() => {
+        setAuthDestination('start');
+        setScreen('auth');
+      }}
       authed={authed}
       testing={testing}
       day={selectedDay}
@@ -132,7 +139,7 @@ export default function App() {
         <AuthScreen
           onAuthed={() => {
             setAuthTick((t) => t + 1);
-            setScreen('play');
+            setScreen(authDestination);
           }}
           onBack={() => setScreen('start')}
         />
@@ -160,7 +167,10 @@ export default function App() {
       );
     case 'leaderboard':
       return (
-        <LeaderboardPage onBack={() => setScreen('start')} day={testing ? selectedDay : undefined} />
+        <LeaderboardPage
+          onBack={() => setScreen('start')}
+          day={testing ? selectedDay : undefined}
+        />
       );
     default:
       return start;

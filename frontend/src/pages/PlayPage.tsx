@@ -1,3 +1,5 @@
+import CinematicBackdrop from '../components/CinematicBackdrop';
+import FunFact from '../components/FunFact';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Mic from '../components/Mic';
 import RecordingTimer from '../components/RecordingTimer';
@@ -5,6 +7,7 @@ import { useRecorder } from '../hooks/useRecorder';
 import { useWebcam } from '../hooks/useWebcam';
 import { ApiError, getAttempt, startAttempt, uploadRecording } from '../lib/api';
 import { RESPONSE_SECONDS } from '../lib/constants';
+import { preloadReactions } from '../lib/reactions';
 import { saveRecording } from '../lib/recordingStore';
 import type { Attempt } from '../types/game';
 
@@ -45,6 +48,9 @@ export default function PlayPage({
   const startedAt = useRef(0);
   const { videoRef, state: camState, stream } = useWebcam(true);
   const recorder = useRecorder();
+
+  // Fetch the results-screen reactions while the player records, so they show instantly.
+  useEffect(() => preloadReactions(), []);
 
   // Load today's attempt.
   useEffect(() => {
@@ -196,9 +202,16 @@ export default function PlayPage({
       {phase === 'getready' && <div className="countdown">{count}</div>}
 
       {(phase === 'uploading' || phase === 'processing') && (
-        <div className="overlay-center">
-          <div className="spinner" />
-          <p className="big">{statusText}</p>
+        <div className="scoring-screen">
+          <CinematicBackdrop />
+          <FunFact className="fun-fact--loading" />
+          <div className="menu-brand" aria-label="Larple">
+            LARPLE<span>DOES HE KNOW?</span>
+          </div>
+          <div className="scoring-status" role="status">
+            <div className="spinner" />
+            <p>{statusText}</p>
+          </div>
         </div>
       )}
     </main>

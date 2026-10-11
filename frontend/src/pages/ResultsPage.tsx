@@ -1,5 +1,6 @@
 import Playback from '../components/Playback';
-import ScoreCard from '../components/ScoreCard';
+import ScoreReaction from '../components/ScoreReaction';
+import TakeBreakdown from '../components/TakeBreakdown';
 import type { Attempt } from '../types/game';
 
 export default function ResultsPage({
@@ -22,29 +23,30 @@ export default function ResultsPage({
     <main className="results">
       <div className="results-inner">
         {scored ? (
-          <h1 className="results-title">{verdict(scored.final_score)}</h1>
+          <>
+            <h1 className="results-title">{verdict(scored.final_score)}</h1>
+            {attempt.question && <p className="results-subtitle">{attempt.question.text}</p>}
+            {attempt.demo && <p className="demo-badge">DEMO MODE — not a real evaluation</p>}
+            <ScoreReaction finalScore={scored.final_score} />
+            <TakeBreakdown score={scored} question={attempt.question} />
+          </>
         ) : (
-          <h1 className="results-title">THAT ONE DIDN'T COUNT</h1>
-        )}
-        {attempt.demo && <p className="demo-badge">DEMO MODE — not a real evaluation</p>}
-
-        {attempt.question && (
-          <div className="results-question">
-            <span className="tag">{attempt.question.category}</span>
-            <h2>{attempt.question.text}</h2>
-          </div>
+          <>
+            <h1 className="results-title">THAT ONE DIDN'T COUNT</h1>
+            {attempt.question && (
+              <div className="results-question">
+                <span className="tag">{attempt.question.category}</span>
+                <h2>{attempt.question.text}</h2>
+              </div>
+            )}
+            <p className="notice">{attempt.failure ?? 'Your attempt could not be scored.'}</p>
+          </>
         )}
 
         {recordingUrl ? (
           <Playback src={recordingUrl} />
         ) : (
           <p className="notice">Your recording is only saved on the device you played on.</p>
-        )}
-
-        {scored ? (
-          <ScoreCard score={scored} />
-        ) : (
-          <p className="notice">{attempt.failure ?? 'Your attempt could not be scored.'}</p>
         )}
 
         <div className="results-buttons">

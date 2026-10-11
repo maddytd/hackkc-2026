@@ -1,8 +1,15 @@
 import { useState } from 'react';
+import CinematicBackdrop from './CinematicBackdrop';
 import { ApiError, login, register } from '../lib/api';
 
 // Register or sign in to get a bearer session. The backend requires this before an attempt.
-export default function AuthScreen({ onAuthed, onBack }: { onAuthed: () => void; onBack: () => void }) {
+export default function AuthScreen({
+  onAuthed,
+  onBack,
+}: {
+  onAuthed: () => void;
+  onBack: () => void;
+}) {
   const [mode, setMode] = useState<'login' | 'register'>('register');
   const [alias, setAlias] = useState('');
   const [password, setPassword] = useState('');
@@ -26,8 +33,7 @@ export default function AuthScreen({ onAuthed, onBack }: { onAuthed: () => void;
 
   return (
     <main className="start">
-      <img className="face" src="/face.png" alt="" aria-hidden="true" />
-      <div className="start-overlay" />
+      <CinematicBackdrop />
 
       <form className="auth-card" onSubmit={submit}>
         <h1 className="auth-title">{mode === 'register' ? 'JOIN LARPLE' : 'WELCOME BACK'}</h1>

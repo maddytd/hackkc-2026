@@ -46,6 +46,7 @@ export default function PlayPage({
   const [count, setCount] = useState(3);
   const [elapsed, setElapsed] = useState(0);
   const startedAt = useRef(0);
+  const submissionStarted = useRef(false);
   const { videoRef, state: camState, stream } = useWebcam(true);
   const recorder = useRecorder();
 
@@ -82,9 +83,10 @@ export default function PlayPage({
     async (blob: Blob) => {
       if (!attempt) return;
       // Keep the recording in the browser so it can be viewed back today.
-      await saveRecording(attempt.day, blob);
       setPhase('uploading');
       try {
+        if (!blob.size) throw new Error('The browser captured no recording. Please try again.');
+        await saveRecording(attempt.day, blob);
         let current = await uploadRecording(attempt.id, blob);
         setPhase('processing');
         while (!TERMINAL.has(current.status)) {
@@ -101,26 +103,42 @@ export default function PlayPage({
     [attempt, onFinish, onError],
   );
 
+  const stopAndSubmit = useCallback(async () => {
+    if (submissionStarted.current) return;
+    submissionStarted.current = true;
+    setPhase('uploading');
+    try {
+      await finishRecording(await recorder.stop());
+    } catch (error) {
+      setPhase('error');
+      onError(error instanceof Error ? error.message : 'Recording could not be saved.');
+    }
+  }, [recorder, finishRecording, onError]);
+
   // Get-ready countdown, then start recording (also gives the camera a moment to warm up).
   // Testing uses a longer 10s lead-in to make it easier.
   useEffect(() => {
-    if (phase !== 'getready') return;
-    setCount(testing ? 10 : 3);
+    if (phase !== 'getready' || camState !== 'live' || !stream) return;
+    let remaining = testing ? 10 : 3;
+    setCount(remaining);
     const id = window.setInterval(() => {
-      setCount((c) => {
-        if (c <= 1) {
-          window.clearInterval(id);
-          if (stream) recorder.start(stream);
+      remaining -= 1;
+      setCount(remaining);
+      if (remaining <= 0) {
+        window.clearInterval(id);
+        try {
+          recorder.start(stream);
           startedAt.current = performance.now();
           setElapsed(0);
           setPhase('recording');
-          return 0;
+        } catch (error) {
+          setPhase('error');
+          onError(error instanceof Error ? error.message : 'Recording could not start.');
         }
-        return c - 1;
-      });
+      }
     }, 1000);
     return () => window.clearInterval(id);
-  }, [phase, stream, recorder, testing]);
+  }, [phase, stream, camState, recorder, testing, onError]);
 
   // 30-second recording window.
   useEffect(() => {
@@ -133,19 +151,18 @@ export default function PlayPage({
         if (!stopped) {
           stopped = true;
           setElapsed(RESPONSE_SECONDS);
-          recorder.stop().then(finishRecording);
+          void stopAndSubmit();
         }
       } else {
         setElapsed(s);
       }
     }, 100);
     return () => window.clearInterval(id);
-  }, [phase, recorder, finishRecording]);
+  }, [phase, stopAndSubmit]);
 
   function stopEarly() {
     if (phase !== 'recording') return;
-    setPhase('uploading');
-    recorder.stop().then(finishRecording);
+    void stopAndSubmit();
   }
 
   const statusText =
@@ -199,7 +216,7 @@ export default function PlayPage({
         </button>
       )}
 
-      {phase === 'getready' && <div className="countdown">{count}</div>}
+      {phase === 'getready' && camState === 'live' && <div className="countdown">{count}</div>}
 
       {(phase === 'uploading' || phase === 'processing') && (
         <div className="scoring-screen">

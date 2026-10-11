@@ -1,0 +1,66 @@
+[
+  {
+    "id": "niche_rosetta_demotic",
+    "text": "Alongside hieroglyphs and Greek, which everyday Egyptian script appears on the Rosetta Stone?",
+    "category": "archaeology",
+    "difficulty": "hard",
+    "context": "Name the script and explain what distinguishes it from hieroglyphs.",
+    "guide": "Correct answer: Demotic. Accept 'Demotic script' or 'Egyptian Demotic'. It was used for everyday Egyptian writing. Hieratic and Coptic are incorrect. Naming Demotic earns full factual credit; the explanation is optional. Score confidence and delivery independently. Source: https://www.britishmuseum.org/blog/everything-you-ever-wanted-know-about-rosetta-stone"
+  },
+  {
+    "id": "niche_enceladus",
+    "text": "Cassini observed icy plumes erupting from south-polar fractures nicknamed 'tiger stripes' on which moon of Saturn?",
+    "category": "astronomy",
+    "difficulty": "hard",
+    "context": "Name the moon and explain your answer if you can.",
+    "guide": "Correct answer: Enceladus. Accept a recognizable spoken pronunciation. Titan, Europa, and Io are incorrect; Europa and Io orbit Jupiter. Naming Enceladus earns full factual credit; extra details are optional. Score confidence and delivery independently. Source: https://science.nasa.gov/mission/cassini/science/enceladus/"
+  },
+  {
+    "id": "niche_hokusai_series",
+    "text": "Hokusai's The Great Wave off Kanagawa belongs to which print series named for a Japanese mountain?",
+    "category": "art",
+    "difficulty": "hard",
+    "context": "Give the series title.",
+    "guide": "Correct answer: Thirty-six Views of Mount Fuji. Accept '36 Views of Mount Fuji' and equivalent spoken wording. 'Mount Fuji' alone identifies the mountain but omits the series title and earns partial accuracy. One Hundred Views of Mount Fuji is a different series. Score confidence and delivery independently. Source: https://www.metmuseum.org/art/collection/search/39799"
+  },
+  {
+    "id": "niche_hodgkin",
+    "text": "Which 1964 Nobel chemistry laureate used X-ray crystallography to determine the structures of penicillin and vitamin B12?",
+    "category": "chemistry",
+    "difficulty": "hard",
+    "context": "Name the scientist.",
+    "guide": "Correct answer: Dorothy Crowfoot Hodgkin. Accept Dorothy Hodgkin, Crowfoot Hodgkin, or Hodgkin. Marie Curie and Rosalind Franklin are incorrect. The question identifies a person, so no explanation is required for full accuracy. Score confidence and delivery independently. Source: https://www.nobelprize.org/womenwhochangedscience/stories/dorothy-hodgkin"
+  },
+  {
+    "id": "niche_antikythera",
+    "text": "Named for the Greek island near its shipwreck, which ancient geared mechanism predicted astronomical positions and eclipses?",
+    "category": "technology",
+    "difficulty": "hard",
+    "context": "Name the device and describe its purpose if you can.",
+    "guide": "Correct answer: the Antikythera mechanism. Accept recognizable spoken pronunciation and 'Antikythera device'. 'An ancient astronomical computer' without its name earns partial accuracy. An astrolabe is not the requested device. Extra explanation is optional. Score confidence and delivery independently. Source: https://www.si.edu/object/antikythera-mechanism-replica%3Anmah_1818245"
+  },
+  {
+    "id": "niche_ghent",
+    "text": "Signed on Christmas Eve in 1814, which treaty brought an end to the War of 1812?",
+    "category": "history",
+    "difficulty": "hard",
+    "context": "Name the treaty.",
+    "guide": "Correct answer: the Treaty of Ghent. Accept 'Ghent' when clearly identifying the treaty. The Treaty of Paris and Treaty of Versailles are incorrect. The signing date is part of the clue; ratification followed later. Naming the treaty earns full factual credit. Score confidence and delivery independently. Source: https://blogs.loc.gov/law/2020/12/new-acquisition-henry-clay-draft-of-article-ix-of-the-treaty-of-ghent/"
+  },
+  {
+    "id": "niche_monks_mound",
+    "text": "At Cahokia in present-day Illinois, what is the name of the immense earthen mound that dominated the ancient community?",
+    "category": "archaeology",
+    "difficulty": "hard",
+    "context": "Name the mound.",
+    "guide": "Correct answer: Monks Mound. Accept Monk's Mound as a spoken equivalent and 'Mound 38'. 'Cahokia' alone repeats the site, not the requested mound. Serpent Mound is a different site. Naming the mound earns full factual credit. Score confidence and delivery independently. Sources: https://www.nps.gov/articles/000/cahokia-mounds-state-historic-site-world-heritage-site.htm ; https://cahokiamounds.org/mound/mound-38-monks-mound/"
+  },
+  {
+    "id": "niche_hodgkin_method",
+    "text": "Dorothy Hodgkin used which crystal-based analytical technique to reveal the molecular structure of vitamin B12?",
+    "category": "chemistry",
+    "difficulty": "hard",
+    "context": "Name the technique and explain its basic idea if you can.",
+    "guide": "Correct answer: X-ray crystallography. Accept X-ray diffraction crystallography or a clear description of determining a crystal's molecular structure from X-ray diffraction patterns. 'Crystallography' alone earns partial accuracy unless the explanation specifies X-rays. Electron microscopy and NMR spectroscopy are incorrect. Extra explanation is optional when the full technique is named. Score confidence and delivery independently. Source: https://www.nobelprize.org/womenwhochangedscience/stories/dorothy-hodgkin"
+  }
+]

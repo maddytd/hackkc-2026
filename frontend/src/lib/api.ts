@@ -123,6 +123,7 @@ export async function logout(): Promise<void> {
 export async function getHealth(): Promise<{
   status: string;
   judge_mode: string;
+  processing_notice?: string;
   day_override?: boolean;
 }> {
   if (!API_URL) return { status: 'ok', judge_mode: 'demo', day_override: true };

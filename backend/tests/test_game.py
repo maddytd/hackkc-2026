@@ -4,8 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
 import pytest
-from fastapi.testclient import TestClient
 from conftest import start, upload
+from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.database import connect
@@ -314,7 +314,7 @@ def test_retention_removes_failed_recording(setup):
     assert client.get(f"/attempts/{aid}", headers=headers).json()["status"] == "judge_failed"
 
 
-@pytest.mark.parametrize("value", [-1, 11, 6.5, "8", True])
+@pytest.mark.parametrize("value", [-1, 5001, 6.5, "8", True])
 def test_judge_rating_validation(value):
     category = {"rating": value, "feedback": "Example"}
     with pytest.raises(ValueError):

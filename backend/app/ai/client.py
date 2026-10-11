@@ -1,12 +1,11 @@
 """Strands judging agent using Gemini's native multimodal structured output."""
 
 import asyncio
-from pathlib import Path
-import subprocess
 
 from google import genai
 from strands import Agent
 
+from app.ai.recording import pegasus_video_bytes
 from app.ai.video_model import VideoGeminiModel
 from app.schemas import Judgment
 
@@ -39,14 +38,13 @@ async def _judge_with_agent(settings, attempt, challenge):
             tools=[],
             callback_handler=None,
         )
-        
-        processed_path = reduce_media_quality(attempt["media_path"])
+        video_bytes = await asyncio.to_thread(pegasus_video_bytes, attempt["media_path"], settings)
         prompt = [
             {"text": "Question and private reference guide:\n" + attempt["question"]},
             {
                 "video": {
-                    "format": formats[attempt["mime"]],
-                    "source": {"bytes": Path(processed_path).read_bytes()},
+                    "format": "mp4",
+                    "source": {"bytes": video_bytes},
                 }
             },
         ]
@@ -67,45 +65,14 @@ def judge(settings, attempt, challenge):
         return Judgment.model_validate(
             {
                 name: {
-                    "rating": 6,
+                    "rating": 3000,
                     "feedback": "DEMO: fixed placeholder rating; this recording was not evaluated.",
                 }
                 for name in ("accuracy", "confidence", "delivery")
             }
         )
+    if challenge["mode"] == "aws":
+        from app.ai.aws_pipeline import judge_aws
+
+        return judge_aws(settings, attempt, challenge)
     return asyncio.run(_judge_with_agent(settings, attempt, challenge))
-
-def reduce_media_quality(media_path: str, output_path: str | None = None) -> str:
-    input_path = Path(media_path)
-    output_file = Path(output_path) if output_path else input_path.with_name(f"{input_path.stem}_ai.mp4")
-
-    # Goal:
-    # - max width 540
-    # - 24 fps
-    # - audio sample rate 48k
-    # - keep format compatible with Gemini
-    cmd = [
-        "ffmpeg",
-        "-y",
-        "-i", str(input_path),
-        "-vf",
-        "scale='min(960,iw)':'min(540,ih)':force_original_aspect_ratio=decrease,fps=24",
-        "-r", "24",
-        "-c:v", "libx264",
-        "-preset", "medium",
-        "-crf", "28",
-        "-c:a", "aac",
-        "-ar", "48000",
-        "-movflags", "+faststart",
-        str(output_file),
-    ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"Failed to reduce media quality for {media_path}: "
-            f"{result.stderr.strip() or result.stdout.strip()}"
-        )
-
-    return str(output_file)
-

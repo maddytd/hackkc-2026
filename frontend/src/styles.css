@@ -1641,3 +1641,11 @@ body {
     animation: none;
   }
 }
+
+.processing-notice {
+  max-width: 36rem;
+  margin: 1rem auto;
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}

@@ -6,5 +6,6 @@ A daily video question-answering game where players have 30 seconds to answer a 
 
 - [Game design](docs/game-design.md): gameplay, scoring, daily attempts, upload recovery, and architecture.
 - [Proposed file structure](docs/file-structure.md): React frontend, FastAPI backend, SQLite storage, and test organization.
+- [AWS and Strands rollout](docs/aws-strands-rollout.md): account setup, niche drafts, audiovisual judging, fallback, and release validation.
 
-The FastAPI backend is implemented. See [backend setup and API documentation](backend/README.md) for local development, Docker deployment, and frontend integration. Frontend implementation is pending.
+The React frontend and FastAPI backend are implemented. See [local setup](RUN.md) and [backend documentation](backend/README.md). New days use the niche library. Judging supports demo, legacy Gemini, and an opt-in AWS Strands workflow with Pegasus performance analysis and a separate Bedrock accuracy judge.

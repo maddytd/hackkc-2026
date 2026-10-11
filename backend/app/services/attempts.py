@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from app.config import ROOT
 from app.database import connect
+from app.schemas import GeneratedQuestion
 
 DEMO_SCORES = (
     ("demo-01", "Demo_Avery", 4820, 4610, 4730),
@@ -103,21 +104,46 @@ def available(settings):
         raise HTTPException(503, "Recording validation is unavailable; install ffprobe")
     if settings.judge_mode == "gemini" and not settings.gemini_api_key:
         raise HTTPException(503, "AI judging has not been configured")
+    if settings.judge_mode == "aws" and not settings.aws_accuracy_model:
+        raise HTTPException(503, "Set the AWS accuracy model before starting a competition")
+
+
+def build_questions(settings, day):
+    """Reviewed niche library; gameplay never waits for a generation API call."""
+    path = settings.questions_file
+    if not path.is_absolute():
+        path = ROOT / path
+    questions = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(questions, list) or not questions:
+        raise ValueError("Question library must be a nonempty array")
+    ids = set()
+    for question in questions:
+        GeneratedQuestion.model_validate({k: question[k] for k in GeneratedQuestion.model_fields})
+        if not isinstance(question.get("id"), str) or not question["id"] or question["id"] in ids:
+            raise ValueError("Question IDs must be nonempty and unique")
+        ids.add(question["id"])
+    return questions
+
+
+def ensure_challenge(settings, day):
+    """Create the day's challenge if missing. Any AI call happens here, outside the write lock."""
+    with connect(settings) as db:
+        if db.execute("SELECT 1 FROM challenges WHERE day=?", (day,)).fetchone():
+            return
+    questions = build_questions(settings, day)
+    rubric = (ROOT / "app/ai/rubrics/question_answering_v1.md").read_text(encoding="utf-8")
+    with connect(settings, write=True) as db:
+        db.execute(
+            "INSERT OR IGNORE INTO challenges VALUES (?,?,?,?,?)",
+            (day, json.dumps(questions), rubric, settings.judge_policy, settings.judge_mode),
+        )
 
 
 def challenge_for(db, settings, day):
     row = db.execute("SELECT * FROM challenges WHERE day=?", (day,)).fetchone()
     if not row:
-        questions = json.loads((ROOT / "content/questions.json").read_text(encoding="utf-8"))
-        if len({q["id"] for q in questions}) < settings.max_replacements + 1:
-            raise HTTPException(503, "Question pool is too small")
-        rubric = (ROOT / "app/ai/rubrics/question_answering_v1.md").read_text(encoding="utf-8")
-        db.execute(
-            "INSERT INTO challenges VALUES (?,?,?,?,?)",
-            (day, json.dumps(questions), rubric, settings.gemini_model, settings.judge_mode),
-        )
-        row = db.execute("SELECT * FROM challenges WHERE day=?", (day,)).fetchone()
-    if row["mode"] != settings.judge_mode or row["model"] != settings.gemini_model:
+        raise HTTPException(503, "The daily challenge is not ready yet")
+    if row["mode"] != settings.judge_mode or row["model"] != settings.judge_policy:
         raise HTTPException(503, "Judge configuration is locked for this competition day")
     return row
 
@@ -125,6 +151,8 @@ def challenge_for(db, settings, day):
 def set_demo_scores(settings, enabled):
     player_ids = tuple(player_id for player_id, *_ in DEMO_SCORES)
     placeholders = ",".join("?" for _ in player_ids)
+    if enabled:
+        ensure_challenge(settings, day_at(time.time()))
     with connect(settings, write=True) as db:
         if not enabled:
             db.execute(f"DELETE FROM scores WHERE player_id IN ({placeholders})", player_ids)
@@ -150,9 +178,7 @@ def set_demo_scores(settings, enabled):
             )
 
             attempt_id = f"demo-attempt-{player_id}-{day}"
-            score = db.execute(
-                "SELECT 1 FROM scores WHERE attempt_id=?", (attempt_id,)
-            ).fetchone()
+            score = db.execute("SELECT 1 FROM scores WHERE attempt_id=?", (attempt_id,)).fetchone()
             if score:
                 continue
             attempt = db.execute("SELECT 1 FROM attempts WHERE id=?", (attempt_id,)).fetchone()
@@ -187,10 +213,13 @@ def set_demo_scores(settings, enabled):
 def has_seeded_demo_scores(db, day):
     player_ids = tuple(player_id for player_id, *_ in DEMO_SCORES)
     placeholders = ",".join("?" for _ in player_ids)
-    return db.execute(
-        f"SELECT 1 FROM scores WHERE day=? AND player_id IN ({placeholders}) LIMIT 1",
-        (day, *player_ids),
-    ).fetchone() is not None
+    return (
+        db.execute(
+            f"SELECT 1 FROM scores WHERE day=? AND player_id IN ({placeholders}) LIMIT 1",
+            (day, *player_ids),
+        ).fetchone()
+        is not None
+    )
 
 
 def daily_question(questions, day):
@@ -220,17 +249,28 @@ def insert_attempt(db, settings, player_id, day, challenge, previous=None):
     return public(db, owned(db, aid, player_id))
 
 
+def _current_attempt(db, player_id, day):
+    return db.execute(
+        "SELECT * FROM attempts WHERE player_id=? AND day=? AND status!='replaced'",
+        (player_id, day),
+    ).fetchone()
+
+
 def start(settings, player_id, day=None):
-    # `day` override is only passed by the demo day-switcher; normal play uses today.
+    # `day` override is only passed by the day-switcher; normal play uses today.
     day = day or day_at(time.time())
-    with connect(settings, write=True) as db:
-        row = db.execute(
-            "SELECT * FROM attempts WHERE player_id=? AND day=? AND status!='replaced'",
-            (player_id, day),
-        ).fetchone()
+    # Return an existing attempt without any AI work (so it can be viewed even if AI is down).
+    with connect(settings) as db:
+        row = _current_attempt(db, player_id, day)
         if row:
             return public(db, row)
-        available(settings)
+    available(settings)
+    # Generate + store the day's prompt here, outside the write transaction below.
+    ensure_challenge(settings, day)
+    with connect(settings, write=True) as db:
+        row = _current_attempt(db, player_id, day)  # re-check: another request may have won
+        if row:
+            return public(db, row)
         usage = db.execute("SELECT jobs FROM daily_usage WHERE day=?", (day,)).fetchone()
         if usage and usage["jobs"] >= settings.max_daily_jobs:
             raise HTTPException(503, "Today's judging capacity is exhausted")

@@ -63,7 +63,9 @@ def test_aws_short_video_rejected_before_judging(monkeypatch, tmp_path, duration
         validate_media(tmp_path / "video", Settings(judge_mode="aws", _env_file=None))
 
 
-@pytest.mark.parametrize("mode,duration", [("aws", "5"), ("aws", "30"), ("gemini", "1"), ("demo", "1")])
+@pytest.mark.parametrize(
+    "mode,duration", [("aws", "5"), ("aws", "30"), ("gemini", "1"), ("demo", "1")]
+)
 def test_minimum_duration_is_specific_to_aws(monkeypatch, tmp_path, mode, duration):
     probe(
         monkeypatch,
@@ -72,4 +74,6 @@ def test_minimum_duration_is_specific_to_aws(monkeypatch, tmp_path, mode, durati
             "format": {"format_name": "mp4", "duration": duration},
         },
     )
-    assert validate_media(tmp_path / "video", Settings(judge_mode=mode, _env_file=None)) == "video/mp4"
+    assert (
+        validate_media(tmp_path / "video", Settings(judge_mode=mode, _env_file=None)) == "video/mp4"
+    )

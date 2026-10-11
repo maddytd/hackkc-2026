@@ -1,9 +1,16 @@
 import { useEffect, useState } from 'react';
 
-// Menu scenes, in order. The first one is what players see when the menu opens.
-const MENU_SCENES = ['what-did-he-see', 'does-he-know', 'hold-up', 'raven', 'cooking', 'lying', 'brains', 'doomed'].map(
-  (name) => `/backgrounds/${name}.jpg`,
-);
+// Title screen scenes, in order ("What did he see?" opens). The results screen has its own set.
+const MENU_SCENES = [
+  'what-did-he-see',
+  'does-he-know',
+  'hold-up',
+  'raven',
+  'cooking',
+  'lying',
+  'brains',
+  'doomed',
+].map((name) => `/backgrounds/${name}.jpg`);
 const SCENE_MS = 9000;
 
 // Flat artwork moves on its own plane over a softer, slower background layer.

@@ -47,17 +47,29 @@ export default function PlayPage({
   const { videoRef, state: camState, stream } = useWebcam(true);
   const recorder = useRecorder();
 
-  // Load today's attempt.
+  // Load today's attempt once the camera is live, so the clock never starts on a dead camera.
   useEffect(() => {
+    if (camState !== 'live') return;
     let cancelled = false;
     startAttempt(day)
-      .then((a) => {
+      .then(async (a) => {
         if (cancelled) return;
-        if (a.status === 'completed' || a.score) {
+        if (TERMINAL.has(a.status) || a.score) {
           onFinish(a, null); // already played today
           return;
         }
+        if (a.status === 'queued' || a.status === 'processing' || a.status === 'uploading') {
+          setPhase('processing');
+          while (!cancelled && !TERMINAL.has(a.status)) {
+            await new Promise((r) => setTimeout(r, 2000));
+            if (cancelled) return;
+            a = await getAttempt(a.id);
+          }
+          if (!cancelled) onFinish(a, null);
+          return;
+        }
         setAttempt(a);
+        setCount(testing ? 10 : 3);
         setPhase('getready');
       })
       .catch((err) => {
@@ -70,16 +82,17 @@ export default function PlayPage({
     return () => {
       cancelled = true;
     };
-  }, [onError, onFinish, day]);
+  }, [camState, onError, onFinish, day, testing]);
 
   // Upload the recording, then poll until the judge finishes.
   const finishRecording = useCallback(
     async (blob: Blob) => {
       if (!attempt) return;
-      // Keep the recording in the browser so it can be viewed back today.
-      await saveRecording(attempt.day, blob);
       setPhase('uploading');
       try {
+        // Keep the recording in the browser so it can be viewed back today. Browser storage
+        // can be unavailable; that must not discard the answer.
+        await saveRecording(attempt.day, blob).catch(() => {});
         let current = await uploadRecording(attempt.id, blob);
         setPhase('processing');
         while (!TERMINAL.has(current.status)) {
@@ -96,26 +109,29 @@ export default function PlayPage({
     [attempt, onFinish, onError],
   );
 
-  // Get-ready countdown, then start recording (also gives the camera a moment to warm up).
-  // Testing uses a longer 10s lead-in to make it easier.
+  // Get-ready countdown, then start recording. Testing uses a 10s lead-in (set above).
+  // The recorder is started here, never inside a setState updater: React StrictMode runs
+  // updaters twice in development, which started two recorders and broke the upload.
   useEffect(() => {
-    if (phase !== 'getready') return;
-    setCount(testing ? 10 : 3);
-    const id = window.setInterval(() => {
-      setCount((c) => {
-        if (c <= 1) {
-          window.clearInterval(id);
-          if (stream) recorder.start(stream);
-          startedAt.current = performance.now();
-          setElapsed(0);
-          setPhase('recording');
-          return 0;
+    if (phase !== 'getready' || !stream) return;
+    const id = window.setTimeout(() => {
+      if (count <= 1) {
+        try {
+          recorder.start(stream);
+        } catch (err) {
+          onError(err instanceof Error ? err.message : 'Unable to start recording.');
+          return;
         }
-        return c - 1;
-      });
+        startedAt.current = performance.now();
+        setElapsed(0);
+        setPhase('recording');
+        setCount(0);
+      } else {
+        setCount(count - 1);
+      }
     }, 1000);
-    return () => window.clearInterval(id);
-  }, [phase, stream, recorder, testing]);
+    return () => window.clearTimeout(id);
+  }, [phase, count, stream, recorder, onError]);
 
   // 30-second recording window.
   useEffect(() => {
@@ -127,6 +143,7 @@ export default function PlayPage({
         window.clearInterval(id);
         if (!stopped) {
           stopped = true;
+          setPhase('uploading');
           setElapsed(RESPONSE_SECONDS);
           recorder.stop().then(finishRecording);
         }

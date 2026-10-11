@@ -1025,10 +1025,26 @@ body {
   transform: rotate(-1.5deg);
   animation: score-reaction-in 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
-.score-reaction img {
+.score-reaction img,
+.score-reaction video {
   display: block;
   width: 100%;
   height: auto;
+  max-height: 46vh;
+  object-fit: cover;
+}
+.score-reaction {
+  position: relative;
+}
+.score-reaction figcaption {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  font:
+    10px system-ui,
+    sans-serif;
+  color: #fffc;
+  text-shadow: 0 1px 3px #000;
 }
 .score-reaction--elite {
   border-color: var(--yellow);

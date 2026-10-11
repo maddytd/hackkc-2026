@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 
 from app.ai.aws_pipeline import CallBudgetExhausted, DeferredJudging
 from app.ai.client import judge
+from app.ai.gemini_errors import classify_gemini_error
 from app.config import Settings
 from app.database import connect, initialize
 from app.services.scoring import score
@@ -124,6 +125,9 @@ def run_once(settings, judge_fn=judge):
     except Exception as exc:  # noqa: BLE001 -- persist failures at the job boundary
         # Do not log provider responses, keys, video data, or user content.
         log.warning("Judging failed for %s (%s)", attempt["id"], type(exc).__name__)
+        gemini_failure = classify_gemini_error(exc) if challenge["mode"] == "gemini" else None
+        if gemini_failure:
+            log.warning("Gemini scoring unavailable (%s)", gemini_failure.code)
         access_denied = (
             isinstance(exc, ClientError)
             and exc.response.get("Error", {}).get("Code") == "AccessDeniedException"
@@ -156,19 +160,31 @@ def run_once(settings, judge_fn=judge):
                     "judge_failed"
                     if isinstance(exc, CallBudgetExhausted)
                     or access_denied
+                    or (gemini_failure is not None and not gemini_failure.retryable)
                     or current["tries"] >= settings.max_judge_tries
                     else "queued"
                 )
+                message = (
+                    "AI evaluation is blocked by AWS model access permissions"
+                    if access_denied
+                    else "AI evaluation failed; retrying the same recording"
+                    if status == "queued"
+                    else "AI evaluation failed after bounded retries"
+                )
+                delay = 2 ** current["tries"]
+                if gemini_failure:
+                    delay = max(delay, gemini_failure.delay)
+                    message = gemini_failure.message + (
+                        " Retrying this recording automatically after a delay."
+                        if status == "queued"
+                        else " No score was created for this attempt."
+                    )
                 db.execute(
                     "UPDATE attempts SET status=?,failure=?,next_run=?,lease=NULL WHERE id=?",
                     (
                         status,
-                        "AI evaluation is blocked by AWS model access permissions"
-                        if access_denied
-                        else "AI evaluation failed; retrying the same recording"
-                        if status == "queued"
-                        else "AI evaluation failed after bounded retries",
-                        now + 2 ** current["tries"],
+                        message,
+                        time.time() + delay,
                         attempt["id"],
                     ),
                 )

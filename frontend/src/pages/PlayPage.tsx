@@ -46,6 +46,7 @@ export default function PlayPage({
   const [phase, setPhase] = useState<Phase>('loading');
   const [count, setCount] = useState(3);
   const [elapsed, setElapsed] = useState(0);
+  const [judgingMessage, setJudgingMessage] = useState<string | null>(null);
   const startedAt = useRef(0);
   const submissionStarted = useRef(false);
   const { videoRef, state: camState, stream } = useWebcam(true);
@@ -58,13 +59,25 @@ export default function PlayPage({
   useEffect(() => {
     let cancelled = false;
     startAttempt(day)
-      .then((a) => {
+      .then(async (a) => {
         if (cancelled) return;
-        if (a.status === 'completed' || a.score) {
+        if (TERMINAL.has(a.status) || a.score) {
           onFinish(a, null); // already played today
           return;
         }
         setAttempt(a);
+        if (a.status === 'queued' || a.status === 'processing' || a.status === 'uploading') {
+          setPhase('processing');
+          let current = a;
+          while (!cancelled && !TERMINAL.has(current.status)) {
+            setJudgingMessage(current.failure);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            if (cancelled) return;
+            current = await getAttempt(a.id);
+          }
+          if (!cancelled) onFinish(current, null);
+          return;
+        }
         setPhase('getready');
       })
       .catch((err) => {
@@ -91,6 +104,7 @@ export default function PlayPage({
         let current = await uploadRecording(attempt.id, blob);
         setPhase('processing');
         while (!TERMINAL.has(current.status)) {
+          setJudgingMessage(current.failure);
           await new Promise((r) => setTimeout(r, 2000));
           current = await getAttempt(attempt.id);
         }
@@ -143,7 +157,7 @@ export default function PlayPage({
 
   // 30-second recording window.
   useEffect(() => {
-    if (phase !== 'recording' || performance.now() - startedAt.current < 5000) return;
+    if (phase !== 'recording') return;
     let stopped = false;
     const id = window.setInterval(() => {
       const s = (performance.now() - startedAt.current) / 1000;
@@ -170,7 +184,7 @@ export default function PlayPage({
     phase === 'uploading'
       ? 'Uploading your answer…'
       : phase === 'processing'
-        ? 'The judge is scoring you…'
+        ? (judgingMessage ?? 'The judge is scoring you…')
         : '';
 
   return (

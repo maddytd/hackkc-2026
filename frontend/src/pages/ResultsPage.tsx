@@ -1,7 +1,15 @@
+import CinematicBackdrop from '../components/CinematicBackdrop';
 import Playback from '../components/Playback';
 import ScoreReaction from '../components/ScoreReaction';
 import TakeBreakdown from '../components/TakeBreakdown';
 import type { Attempt } from '../types/game';
+
+// Thumbnails that drift behind the results, faded like the end-of-heist screen.
+const RESULT_SCENES = [
+  '/backgrounds/what-did-he-see.jpg', // shared with the menu's opening scene
+  '/results/what-does-he-even-do.jpg',
+  // To add: '/results/one-percent.jpg', '/results/tongue-out.jpg', '/results/lets-talk.jpg'
+];
 
 export default function ResultsPage({
   attempt,
@@ -21,6 +29,10 @@ export default function ResultsPage({
 
   return (
     <main className="results">
+      <div className="results-backdrop" aria-hidden="true">
+        <CinematicBackdrop sources={RESULT_SCENES} />
+        <div className="results-fade" />
+      </div>
       <div className="results-inner">
         {scored ? (
           <>

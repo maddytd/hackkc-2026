@@ -1,10 +1,21 @@
 import { useEffect, useState } from 'react';
 
-const scenes = ['does-he-know', 'hold-up', 'raven', 'cooking', 'lying', 'brains', 'doomed'];
+// Menu scenes, in order. The first one is what players see when the menu opens.
+const MENU_SCENES = ['what-did-he-see', 'does-he-know', 'hold-up', 'raven', 'cooking', 'lying', 'brains', 'doomed'].map(
+  (name) => `/backgrounds/${name}.jpg`,
+);
 const SCENE_MS = 9000;
 
 // Flat artwork moves on its own plane over a softer, slower background layer.
-export default function CinematicBackdrop({ paused = false }: { paused?: boolean }) {
+// `sources` swaps in a different image set (e.g. the results screen); defaults to the menu's.
+export default function CinematicBackdrop({
+  paused = false,
+  sources = MENU_SCENES,
+}: {
+  paused?: boolean;
+  sources?: string[];
+}) {
+  const scenes = sources;
   const [scene, setScene] = useState(0);
   const [reduced, setReduced] = useState(
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -23,17 +34,17 @@ export default function CinematicBackdrop({ paused = false }: { paused?: boolean
 
   return (
     <div className={`cinematic ${paused || reduced ? 'cinematic--paused' : ''}`} aria-hidden="true">
-      {scenes.map((name, index) => {
+      {scenes.map((src, index) => {
         const active = scene % scenes.length === index;
         const previous = scene > 0 && (scene - 1) % scenes.length === index;
         return (
           <div
-            key={name}
+            key={src}
             className={`cinematic-scene ${active ? 'is-active' : ''} ${previous ? 'is-previous' : ''}`}
           >
-            <img className="cinematic-glow" src={`/backgrounds/${name}.jpg`} alt="" />
+            <img className="cinematic-glow" src={src} alt="" />
             <div className={`cinematic-plane ${index % 2 ? 'cinematic-plane--reverse' : ''}`}>
-              <img src={`/backgrounds/${name}.jpg`} alt="" decoding="async" />
+              <img src={src} alt="" decoding="async" />
             </div>
           </div>
         );

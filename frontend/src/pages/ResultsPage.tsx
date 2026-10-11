@@ -1,3 +1,4 @@
+import BrandHome from '../components/BrandHome';
 import CinematicBackdrop from '../components/CinematicBackdrop';
 import Playback from '../components/Playback';
 import ScoreReaction from '../components/ScoreReaction';
@@ -37,14 +38,17 @@ export default function ResultsPage({
         <CinematicBackdrop sources={RESULT_SCENES} />
         <div className="results-fade" />
       </div>
-      <nav className="results-nav" aria-label="Results">
-        <button onClick={onBack}>
-          <span>←</span> HOME
-        </button>
-        <button onClick={onLeaderboard}>
-          LEADERBOARD <span>↗</span>
-        </button>
-      </nav>
+      <header className="page-head">
+        <BrandHome onHome={onBack} />
+        <nav className="page-links" aria-label="Results">
+          <button onClick={onBack}>
+            <span>←</span> HOME
+          </button>
+          <button onClick={onLeaderboard}>
+            LEADERBOARD <span>↗</span>
+          </button>
+        </nav>
+      </header>
       <div className="results-inner">
         {scored ? (
           <>

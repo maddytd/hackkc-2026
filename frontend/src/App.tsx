@@ -124,7 +124,7 @@ export default function App() {
   const start = (
     <StartScreen
       onStart={beginPlay}
-      onLeaderboard={() => setScreen('leaderboard')}
+      onLeaderboard={() => smoothly(() => setScreen('leaderboard'))}
       onLogout={doLogout}
       onCreateAccount={() =>
         smoothly(() => {
@@ -167,8 +167,8 @@ export default function App() {
         <ResultsPage
           attempt={result}
           recordingUrl={recordingUrl}
-          onLeaderboard={() => setScreen('leaderboard')}
-          onBack={() => setScreen('start')}
+          onLeaderboard={() => smoothly(() => setScreen('leaderboard'))}
+          onBack={() => smoothly(() => setScreen('start'))}
           onRetry={retry}
         />
       ) : (
@@ -177,7 +177,7 @@ export default function App() {
     case 'leaderboard':
       return (
         <LeaderboardPage
-          onBack={() => setScreen('start')}
+          onBack={() => smoothly(() => setScreen('start'))}
           day={testing ? selectedDay : undefined}
         />
       );

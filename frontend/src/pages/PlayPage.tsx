@@ -1,3 +1,4 @@
+import BlurredFeed from '../components/BlurredFeed';
 import CinematicBackdrop from '../components/CinematicBackdrop';
 import FunFact from '../components/FunFact';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -158,6 +159,7 @@ export default function PlayPage({
   return (
     <main className="game">
       <div className="game-bg" />
+      <BlurredFeed stream={stream} />
       <div className="floor" />
 
       <Mic className="rig-mic rig-mic--top" />

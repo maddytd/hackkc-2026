@@ -6,6 +6,7 @@ import type { Attempt, Leaderboard } from '../types/game';
 
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '');
 const TOKEN_KEY = 'larple_token';
+const ALIAS_KEY = 'larple_alias';
 
 // True when a real backend is configured; false means the UI runs on mock data.
 export const apiConfigured = Boolean(API_URL);
@@ -34,6 +35,24 @@ function setToken(token: string | null) {
     else localStorage.removeItem(TOKEN_KEY);
   } catch {
     /* storage unavailable (private mode) — token lives only for this page load */
+  }
+}
+
+// The signed-in username, used to highlight your row on the leaderboard.
+export function getAlias(): string | null {
+  try {
+    return localStorage.getItem(ALIAS_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setAlias(alias: string | null) {
+  try {
+    if (alias) localStorage.setItem(ALIAS_KEY, alias);
+    else localStorage.removeItem(ALIAS_KEY);
+  } catch {
+    /* storage unavailable — no highlight */
   }
 }
 
@@ -93,6 +112,7 @@ export async function register(alias: string, password: string): Promise<Session
     body: { alias, password },
   });
   setToken(s.access_token);
+  setAlias(s.alias);
   return s;
 }
 
@@ -103,6 +123,7 @@ export async function login(alias: string, password: string): Promise<Session> {
     body: { alias, password },
   });
   setToken(s.access_token);
+  setAlias(s.alias);
   return s;
 }
 
@@ -115,6 +136,7 @@ export async function logout(): Promise<void> {
     }
   }
   setToken(null);
+  setAlias(null);
 }
 
 // --- game ---

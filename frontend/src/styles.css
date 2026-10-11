@@ -668,9 +668,8 @@ body {
     padding: 10px 12px 2px;
     font-size: 12px;
   }
-  .results-nav {
-    left: 18px;
-    gap: 20px;
+  .page-head {
+    padding-left: 20px;
   }
   .menu-settings {
     top: 20px;
@@ -795,6 +794,24 @@ body {
   z-index: 0;
 }
 
+/* The live camera, blurred to fill the screen behind the recording frame (fades in once live). */
+.feed-blur {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1) scale(1.15); /* mirrored like the preview; scale hides blurred edges */
+  filter: blur(32px) brightness(0.55) saturate(1.2);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+.feed-blur.is-live {
+  opacity: 1;
+}
+
 .floor {
   position: absolute;
   inset: 0;
@@ -818,11 +835,9 @@ body {
   z-index: 5;
   text-align: center;
   padding: 14px 20px;
-  border-radius: 14px;
-  background: rgba(8, 8, 18, 0.6);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(0, 0, 0, 0.8);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.5);
+  /* No box: the question floats over the blurred camera, kept readable by text shadows. */
+  background: none;
+  border: 0;
 }
 
 .prompt-bar h2 {
@@ -832,13 +847,19 @@ body {
   letter-spacing: 0.01em;
   font-size: clamp(1.15rem, 3.4vw, 1.8rem);
   color: #fff;
+  text-shadow:
+    0 3px 0 #000,
+    0 0 18px #000c;
 }
 
 .prompt-bar p {
   margin: 6px 0 0;
   font-family: system-ui, sans-serif;
   font-size: 0.9rem;
-  color: var(--muted);
+  color: #e6e6ea;
+  text-shadow:
+    0 1px 3px #000,
+    0 0 12px #000c;
 }
 
 .game-timer {
@@ -1249,20 +1270,60 @@ body {
 .results-inner {
   position: relative;
   z-index: 1;
-  padding-top: 72px;
 }
 
-/* Home / leaderboard links pinned top-left on the results screen. */
-.results-nav {
-  position: absolute;
-  top: max(18px, env(safe-area-inset-top));
-  left: max(26px, env(safe-area-inset-left));
+/* LARPLE wordmark (goes home) + page links, top-left on results and leaderboard.
+   Pinned in the corner on wide screens; in normal flow above the content on narrow ones. */
+.page-head {
+  position: relative;
   z-index: 2;
-  display: flex;
-  gap: 26px;
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  padding: max(18px, env(safe-area-inset-top)) 26px 0;
 }
-.results-nav button {
-  padding: 12px 0;
+@media (min-width: 981px) {
+  .page-head {
+    position: absolute;
+    top: 0;
+    left: max(0px, env(safe-area-inset-left));
+  }
+}
+.brand-home {
+  display: grid;
+  justify-items: start;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+.brand-home-word {
+  font:
+    clamp(34px, 3.6vw, 48px) / 1 'Anton',
+    sans-serif;
+  letter-spacing: -0.025em;
+  text-shadow: 3px 3px 0 #000;
+  transition: color 0.2s;
+}
+.brand-home-tag {
+  margin-top: 6px;
+  color: var(--yellow);
+  font:
+    9px 'Archivo Black',
+    sans-serif;
+  letter-spacing: 0.2em;
+}
+.brand-home:hover .brand-home-word {
+  color: var(--yellow);
+}
+.page-links {
+  display: flex;
+  gap: 22px;
+}
+.page-links button {
+  padding: 10px 0;
   background: none;
   border: 0;
   color: #eee;
@@ -1273,17 +1334,18 @@ body {
   text-shadow: 0 1px 4px #000;
   cursor: pointer;
 }
-.results-nav span {
+.page-links span {
   color: var(--yellow);
   margin: 0 8px;
 }
-.results-nav button:first-child span {
+.page-links button:first-child span {
   margin-left: 0;
 }
-.results-nav button:hover {
+.page-links button:hover {
   color: var(--yellow);
 }
-.results-nav button:focus-visible {
+.brand-home:focus-visible,
+.page-links button:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 4px;
 }
@@ -1297,7 +1359,7 @@ body {
     sans-serif;
 }
 
-/* End-of-heist style breakdown (rows, then "Your Final Take"). */
+/* End-of-heist style breakdown (rows, then "Your Final Score"). */
 .take {
   width: 100%;
   max-width: 460px;
@@ -1334,29 +1396,6 @@ body {
 .take-row dd {
   font-variant-numeric: tabular-nums;
   text-align: right;
-}
-.take-check {
-  display: inline-block;
-  width: 15px;
-  height: 15px;
-  border: 1.5px solid #e6e6e6;
-  vertical-align: middle;
-}
-.take-check.is-done {
-  position: relative;
-  background: var(--yellow);
-  border-color: var(--yellow);
-}
-.take-check.is-done::after {
-  content: '';
-  position: absolute;
-  left: 4px;
-  top: 0;
-  width: 4px;
-  height: 9px;
-  border: solid #111;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
 }
 .take-final {
   display: flex;
@@ -1639,5 +1678,294 @@ body {
   .countdown,
   .spinner {
     animation: none;
+  }
+}
+
+/* ============ Leaderboard (game-style) ============
+   Same dark fade as the results screen over the drifting thumbnails, slanted see-through
+   dark bars, top three edged gold / silver / bronze, and your own row in Larple yellow
+   (also pinned at the bottom). */
+.lb {
+  --lb-night: #08080b;
+  --lb-edge: #ffffff59;
+  --lb-ink: #b9b9c4;
+  --lb-gold: var(--yellow);
+  --lb-silver: #d9d9e0;
+  --lb-bronze: #e3a36b;
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  background: var(--lb-night);
+  color: #fff;
+}
+.lb-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.lb-backdrop .cinematic {
+  opacity: 0.55;
+}
+.lb-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background:
+    radial-gradient(ellipse 60% 75% at 50% 45%, #08080bd9 0%, #08080bb8 50%, #08080b80 100%),
+    linear-gradient(180deg, #08080bb3 0%, transparent 20%, transparent 80%, #08080bcc 100%);
+}
+.lb-panel {
+  position: relative;
+  z-index: 1;
+  width: min(900px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 42px 0 64px;
+}
+.lb-panel--pinned {
+  padding-bottom: 130px;
+}
+.lb-title {
+  margin: 0;
+  font:
+    clamp(52px, 8vw, 104px) / 0.95 'Anton',
+    sans-serif;
+  letter-spacing: 0.005em;
+  text-shadow: 0 5px 0 #000;
+}
+.lb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 28px;
+}
+.lb-tab,
+.lb-day {
+  padding: 7px 16px;
+  font:
+    11px 'Archivo Black',
+    sans-serif;
+  letter-spacing: 0.14em;
+}
+.lb-tab {
+  background: var(--yellow);
+  color: var(--lb-night);
+}
+.lb-day {
+  border: 1px solid #ffffff59;
+  color: #eee;
+  background: #ffffff12;
+}
+.lb-demo {
+  color: var(--lb-ink);
+  font:
+    13px system-ui,
+    sans-serif;
+}
+.lb-note {
+  margin: 0;
+  color: #eee;
+  font:
+    17px/1.45 system-ui,
+    sans-serif;
+}
+
+/* Columns: rank | player | three stats | score */
+.lb-cols,
+.lb-row,
+.lb-you {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) repeat(3, 92px) 116px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 26px;
+}
+.lb-cols {
+  margin-bottom: 10px;
+  color: var(--lb-ink);
+  font:
+    10px 'Archivo Black',
+    sans-serif;
+  letter-spacing: 0.14em;
+}
+.lb-cols .lb-stat,
+.lb-score-col {
+  text-align: right;
+}
+.lb-cols .lb-stat {
+  font: inherit;
+  color: inherit;
+}
+/* Below ~1300px the centered board would run under the corner logo, so the header flows above it. */
+@media (max-width: 1299px) {
+  .lb .page-head {
+    position: relative;
+  }
+  .lb-panel {
+    padding-top: 18px;
+  }
+}
+.lb-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.lb-row {
+  position: relative;
+  isolation: isolate;
+  min-height: 58px;
+  animation: lb-row-in 0.55s cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+/* The slanted bar sits behind the row so the text stays upright. */
+.lb-row::before,
+.lb-you::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, #1c1c22e0 0%, #121216c7 100%);
+  border-left: 5px solid var(--lb-edge);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 8px 20px #00000059;
+  transform: skewX(-12deg);
+}
+.lb-row--top1::before {
+  border-left-color: var(--lb-gold);
+  background: linear-gradient(90deg, #26262eeb 0%, #16161bd6 100%);
+}
+.lb-row--top2::before {
+  border-left-color: var(--lb-silver);
+}
+.lb-row--top3::before {
+  border-left-color: var(--lb-bronze);
+}
+.lb-rank {
+  font:
+    30px/1 'Anton',
+    sans-serif;
+}
+.lb-row--top1 .lb-rank {
+  color: var(--lb-gold);
+}
+.lb-row--top2 .lb-rank {
+  color: var(--lb-silver);
+}
+.lb-row--top3 .lb-rank {
+  color: var(--lb-bronze);
+}
+.lb-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font:
+    600 17px system-ui,
+    sans-serif;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-name em {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  background: var(--lb-night);
+  color: var(--yellow);
+  font:
+    normal 10px 'Archivo Black',
+    sans-serif;
+  letter-spacing: 0.1em;
+}
+.lb-stat,
+.lb-score {
+  text-align: right;
+  font-family: 'Anton', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.lb-stat {
+  color: var(--lb-ink);
+  font-size: 18px;
+}
+.lb-score {
+  font-size: 26px;
+}
+
+/* You: solid Larple yellow with dark ink. */
+.lb-row.is-me::before,
+.lb-you::before {
+  background: var(--yellow);
+  border-left-color: #fff;
+}
+.lb-row.is-me,
+.lb-row.is-me .lb-rank,
+.lb-row.is-me .lb-stat,
+.lb-you {
+  color: var(--lb-night);
+}
+.lb-you {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 4;
+  width: min(900px, calc(100% - 32px));
+  min-height: 62px;
+  transform: translateX(-50%);
+  grid-template-columns: 110px 64px minmax(0, 1fr) 116px;
+  isolation: isolate;
+}
+.lb-you::before {
+  box-shadow: 0 14px 40px #000a;
+}
+.lb-you-label {
+  font:
+    11px 'Archivo Black',
+    sans-serif;
+  letter-spacing: 0.12em;
+}
+@keyframes lb-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lb-row {
+    animation: none;
+  }
+}
+@media (max-width: 640px) {
+  .lb-cols,
+  .lb-row {
+    grid-template-columns: 40px minmax(0, 1fr) 92px;
+    padding: 0 18px;
+  }
+  .lb-stat {
+    display: none;
+  }
+  .lb-row {
+    min-height: 54px;
+  }
+  .lb-rank {
+    font-size: 24px;
+  }
+  .lb-score {
+    font-size: 22px;
+  }
+  .lb-name {
+    font-size: 15px;
+  }
+  .lb-panel {
+    padding-top: 24px;
+  }
+  .lb-you {
+    grid-template-columns: 74px 40px minmax(0, 1fr) 84px;
+    padding: 0 18px;
+  }
+  .lb-you-label {
+    font-size: 9px;
   }
 }

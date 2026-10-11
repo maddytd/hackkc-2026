@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const scenes = ['hold-up', 'raven', 'cooking', 'lying', 'brains', 'doomed'];
+const scenes = ['does-he-know', 'hold-up', 'raven', 'cooking', 'lying', 'brains', 'doomed'];
 const SCENE_MS = 9000;
 
 // Flat artwork moves on its own plane over a softer, slower background layer.

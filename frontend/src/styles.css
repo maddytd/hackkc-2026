@@ -1016,11 +1016,15 @@ body {
   width: min(380px, 92%);
   display: grid;
   gap: 12px;
-  padding: 26px;
-  background: #14121f;
-  border: 3px solid #000;
-  border-radius: 16px;
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.7);
+  padding: 28px;
+  /* See-through glass, matching the menu's outlined buttons. */
+  background: #0b0b0f59;
+  border: 1px solid #ffffff4d;
+  border-radius: 18px;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 24px 60px #0007;
+  view-transition-name: auth-card;
 }
 
 .auth-title {
@@ -1036,7 +1040,8 @@ body {
   gap: 4px;
   font-family: system-ui, sans-serif;
   font-size: 0.85rem;
-  color: var(--muted);
+  color: #e6e6ea;
+  text-shadow: 0 1px 3px #000a;
 }
 
 .auth-card input {
@@ -1044,9 +1049,16 @@ body {
   font-size: 1rem;
   color: #fff;
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 2px solid #000;
-  background: #0a0912;
+  border-radius: 10px;
+  border: 1px solid #ffffff40;
+  background: #00000059;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.auth-card input:focus {
+  border-color: var(--yellow);
+  background: #00000080;
 }
 
 .auth-card input:focus-visible {
@@ -1064,7 +1076,49 @@ body {
   margin: 4px 0 0;
   font-family: system-ui, sans-serif;
   font-size: 0.85rem;
-  color: var(--muted);
+  color: #d0d0d6;
+}
+
+/* ============ Screen transitions ============
+   Apple-style: the outgoing screen settles back and softens while the incoming one
+   eases forward into focus. Driven by lib/transition.ts (View Transitions API). */
+::view-transition-old(root) {
+  animation: vt-out 0.42s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+::view-transition-new(root) {
+  animation: vt-in 0.6s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+/* The sign-in card morphs between "Join" and "Welcome back" instead of popping. */
+::view-transition-group(auth-card) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition-old(auth-card) {
+  animation: vt-out 0.42s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+::view-transition-new(auth-card) {
+  animation: vt-card-in 0.6s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(6px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+    filter: blur(8px);
+  }
+}
+@keyframes vt-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+    filter: blur(6px);
+  }
 }
 
 .linkbtn {

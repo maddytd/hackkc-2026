@@ -13,6 +13,7 @@ import {
   requestReplacement,
 } from './lib/api';
 import { clearRecording, loadRecording } from './lib/recordingStore';
+import { smoothly } from './lib/transition';
 import type { Attempt } from './types/game';
 
 type Screen = 'start' | 'auth' | 'play' | 'results' | 'leaderboard';
@@ -71,8 +72,10 @@ export default function App() {
 
   const beginPlay = useCallback(() => {
     if (apiConfigured && !isAuthed()) {
-      setAuthDestination('play');
-      setScreen('auth');
+      smoothly(() => {
+        setAuthDestination('play');
+        setScreen('auth');
+      });
     } else if (!testing && hasScore(result)) setScreen('results');
     else setScreen('play');
   }, [result, testing]);
@@ -112,8 +115,10 @@ export default function App() {
     await clearRecording();
     setResult(null);
     setRecordingUrl(null);
-    setAuthTick((t) => t + 1);
-    setScreen('start');
+    smoothly(() => {
+      setAuthTick((t) => t + 1);
+      setScreen('start');
+    });
   }, []);
 
   const start = (
@@ -121,10 +126,12 @@ export default function App() {
       onStart={beginPlay}
       onLeaderboard={() => setScreen('leaderboard')}
       onLogout={doLogout}
-      onCreateAccount={() => {
-        setAuthDestination('start');
-        setScreen('auth');
-      }}
+      onCreateAccount={() =>
+        smoothly(() => {
+          setAuthDestination('start');
+          setScreen('auth');
+        })
+      }
       authed={authed}
       testing={testing}
       day={selectedDay}
@@ -137,11 +144,13 @@ export default function App() {
     case 'auth':
       return (
         <AuthScreen
-          onAuthed={() => {
-            setAuthTick((t) => t + 1);
-            setScreen(authDestination);
-          }}
-          onBack={() => setScreen('start')}
+          onAuthed={() =>
+            smoothly(() => {
+              setAuthTick((t) => t + 1);
+              setScreen(authDestination);
+            })
+          }
+          onBack={() => smoothly(() => setScreen('start'))}
         />
       );
     case 'play':

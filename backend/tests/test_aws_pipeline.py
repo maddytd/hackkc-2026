@@ -36,8 +36,20 @@ def performance():
                 "description": "Clear spoken answer after a short pause.",
             },
         ],
-        "confidence": {"rating": 9, "feedback": "Committed vocal emphasis and gesture."},
-        "delivery": {"rating": 8, "feedback": "Clear articulation with a brief pause."},
+        "confidence": {
+            "directness": 95,
+            "fluency": 85,
+            "voice": 90,
+            "presence": 90,
+            "feedback": "Committed vocal emphasis and gesture.",
+        },
+        "delivery": {
+            "clarity": 90,
+            "pacing": 70,
+            "structure": 75,
+            "expression": 80,
+            "feedback": "Clear articulation with a brief pause.",
+        },
     }
 
 
@@ -319,3 +331,15 @@ def test_silence_earns_nothing_but_a_spoken_bluff_still_scores(
     assert result.accuracy.rating == accuracy_rating * 500
     assert result.confidence.rating == expected_confidence
     assert result.delivery.rating == (4000 if expected_confidence else 0)
+
+
+def test_one_weak_signal_moves_the_score_by_its_weight():
+    accuracy = AccuracyJudgment.model_validate({"accuracy": {"rating": 10, "feedback": "Right."}})
+    hedged = performance()
+    hedged["confidence"]["directness"] = 31
+    result = combine(PerformanceEvidence.model_validate(hedged), accuracy)
+    assert result.confidence.rating == 3540
+    looked_away = performance()
+    looked_away["confidence"]["presence"] = 26
+    result = combine(PerformanceEvidence.model_validate(looked_away), accuracy)
+    assert result.confidence.rating == 4180

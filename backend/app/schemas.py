@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
@@ -76,9 +76,32 @@ class Observation(BaseModel):
 
 
 class AgentCategory(Category):
-    """AWS agents use anchored 0..10 ratings, normalized at the scoring boundary."""
+    """The accuracy agent uses an anchored 0..10 rating, normalized at the scoring boundary."""
 
     rating: int = Field(ge=0, le=10, strict=True)
+
+
+# Pegasus rates each performance signal 0..100; Python weights them into a category score,
+# so close performances land on different totals instead of sharing a few anchor values.
+Signal = Annotated[int, Field(ge=0, le=100, strict=True)]
+
+
+class ConfidenceSignals(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    directness: Signal
+    fluency: Signal
+    voice: Signal
+    presence: Signal
+    feedback: str = Field(min_length=1, max_length=1000)
+
+
+class DeliverySignals(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    clarity: Signal
+    pacing: Signal
+    structure: Signal
+    expression: Signal
+    feedback: str = Field(min_length=1, max_length=1000)
 
 
 class PerformanceEvidence(BaseModel):
@@ -87,8 +110,8 @@ class PerformanceEvidence(BaseModel):
     video_assessable: bool
     transcript: str = Field(max_length=6000)
     observations: list[Observation] = Field(min_length=2, max_length=12)
-    confidence: AgentCategory
-    delivery: AgentCategory
+    confidence: ConfidenceSignals
+    delivery: DeliverySignals
 
 
 class AccuracyJudgment(BaseModel):

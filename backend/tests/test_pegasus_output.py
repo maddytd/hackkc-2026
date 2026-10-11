@@ -17,8 +17,20 @@ def evidence():
             {"seconds": 2, "channel": "audio", "description": "Clear spoken answer"},
             {"seconds": 3, "channel": "visual", "description": "Gesture toward camera"},
         ],
-        "confidence": {"rating": 8, "feedback": "Committed vocal emphasis"},
-        "delivery": {"rating": 7, "feedback": "Clear articulation"},
+        "confidence": {
+            "directness": 82,
+            "fluency": 77,
+            "voice": 80,
+            "presence": 71,
+            "feedback": "Committed vocal emphasis",
+        },
+        "delivery": {
+            "clarity": 74,
+            "pacing": 68,
+            "structure": 41,
+            "expression": 63,
+            "feedback": "Clear articulation",
+        },
     }
 
 
@@ -40,12 +52,12 @@ def test_valid_evidence_is_parsed_without_exposing_or_rewriting_transcript(fence
         {completion_key: "stop", "message": message}, PerformanceEvidence
     )
     assert result.transcript == "Enceladus"
-    assert result.confidence.rating == 8
+    assert result.confidence.directness == 82
 
 
 def test_invalid_rating_cannot_become_a_score():
     data = evidence()
-    data["confidence"]["rating"] = 50
+    data["confidence"]["voice"] = 500
     with pytest.raises(ValidationError):
         parse_scoring_response(
             {"finishReason": "stop", "message": json.dumps(data)}, PerformanceEvidence

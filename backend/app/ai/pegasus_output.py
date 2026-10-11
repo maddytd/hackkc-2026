@@ -4,11 +4,38 @@ import base64
 import json
 
 
+def inline_schema(output_model):
+    """The model's JSON schema with every $ref replaced by its definition.
+
+    Pegasus sometimes answers with the schema itself when it opens with a "$defs" block.
+    """
+    schema = output_model.model_json_schema()
+    definitions = schema.pop("$defs", {})
+
+    def resolve(node):
+        if isinstance(node, list):
+            return [resolve(item) for item in node]
+        if not isinstance(node, dict):
+            return node
+        if "$ref" in node:
+            return resolve(definitions[node["$ref"].rsplit("/", 1)[1]])
+        # Generated titles only repeat the field names.
+        return {
+            key: resolve(value)
+            for key, value in node.items()
+            if not (key == "title" and isinstance(value, str))
+        }
+
+    return resolve(schema)
+
+
 def scoring_request(video_bytes, output_model, system_prompt):
-    schema = json.dumps(output_model.model_json_schema(), separators=(",", ":"))
+    schema = json.dumps(inline_schema(output_model), separators=(",", ":"))
     return {
-        "inputPrompt": system_prompt + "\nReturn exactly one JSON object matching this schema. "
-        "Include every required field. Do not include markdown or commentary.\n" + schema,
+        "inputPrompt": system_prompt + "\nReturn exactly one JSON object holding your assessment "
+        "of this video, with the fields the schema below describes. Include every required "
+        "field. Do not repeat the schema. Do not include markdown or commentary.\nSchema: "
+        + schema,
         "mediaSource": {"base64String": base64.b64encode(video_bytes).decode("ascii")},
         "temperature": 0,
         "maxOutputTokens": 4096,

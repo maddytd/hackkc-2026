@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import CinematicBackdrop from './CinematicBackdrop';
+import FunFact from './FunFact';
 
 export default function StartScreen({
   onStart,
@@ -63,11 +64,11 @@ export default function StartScreen({
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.6"
+            strokeWidth="2"
+            strokeLinecap="round"
             aria-hidden="true"
           >
-            <path d="m9 3-1 3-3 1-2 3 2 2-1 3 2 3 3-1 2 4h3l1-3 3-1 2-3-2-2 1-3-2-3-3 1-2-4Z" />
-            <circle cx="12" cy="12" r="3" />
+            <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
         {settings && (
@@ -116,6 +117,7 @@ export default function StartScreen({
         <button className="menu-how" onClick={() => howTo.current?.showModal()}>
           HOW TO PLAY <span>↗</span>
         </button>
+        <FunFact className="fun-fact--menu" />
       </nav>
 
       <div className="menu-brand">

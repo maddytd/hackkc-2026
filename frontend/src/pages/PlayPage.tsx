@@ -1,4 +1,5 @@
 import CinematicBackdrop from '../components/CinematicBackdrop';
+import FunFact from '../components/FunFact';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Mic from '../components/Mic';
 import RecordingTimer from '../components/RecordingTimer';
@@ -216,6 +217,7 @@ export default function PlayPage({
       {(phase === 'uploading' || phase === 'processing') && (
         <div className="scoring-screen">
           <CinematicBackdrop />
+          <FunFact className="fun-fact--loading" />
           <div className="menu-brand" aria-label="Larple">
             LARPLE<span>DOES HE KNOW?</span>
           </div>

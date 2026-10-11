@@ -1,7 +1,19 @@
+import CinematicBackdrop from '../components/CinematicBackdrop';
 import Playback from '../components/Playback';
 import ScoreReaction from '../components/ScoreReaction';
 import TakeBreakdown from '../components/TakeBreakdown';
 import type { Attempt } from '../types/game';
+
+// Thumbnails that drift behind the results, faded like the end-of-heist screen.
+// Results-only images; none of these appear on the title screen.
+const RESULT_SCENES = [
+  '/results/what-does-he-even-do.jpg',
+  '/results/lets-talk.jpg',
+  '/results/useless-info.webp',
+  '/results/feels-the-larp.webp',
+  '/results/no-limit-to-the-larp.webp',
+  '/results/one-percent.webp',
+];
 
 export default function ResultsPage({
   attempt,
@@ -21,6 +33,18 @@ export default function ResultsPage({
 
   return (
     <main className="results">
+      <div className="results-backdrop" aria-hidden="true">
+        <CinematicBackdrop sources={RESULT_SCENES} />
+        <div className="results-fade" />
+      </div>
+      <nav className="results-nav" aria-label="Results">
+        <button onClick={onBack}>
+          <span>←</span> HOME
+        </button>
+        <button onClick={onLeaderboard}>
+          LEADERBOARD <span>↗</span>
+        </button>
+      </nav>
       <div className="results-inner">
         {scored ? (
           <>

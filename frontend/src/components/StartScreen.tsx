@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import CinematicBackdrop from './CinematicBackdrop';
 import FunFact from './FunFact';
+import TopThree from './TopThree';
 
 export default function StartScreen({
   onStart,
@@ -117,16 +118,15 @@ export default function StartScreen({
         <button className="menu-how" onClick={() => howTo.current?.showModal()}>
           HOW TO PLAY <span>↗</span>
         </button>
-        <FunFact className="fun-fact--menu" />
       </nav>
+
+      <FunFact />
 
       <div className="menu-brand">
         <h1>LARPLE</h1>
         <span>DOES HE KNOW?</span>
+        <TopThree day={testing ? day : undefined} onLeaderboard={onLeaderboard} />
       </div>
-      <button className="menu-leaderboard" onClick={onLeaderboard}>
-        LEADERBOARD <span>↗</span>
-      </button>
 
       <dialog
         className="menu-dialog howto-card"

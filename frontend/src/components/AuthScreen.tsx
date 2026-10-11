@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import CinematicBackdrop from './CinematicBackdrop';
 import { ApiError, login, register } from '../lib/api';
+import { smoothly } from '../lib/transition';
+
+// The API calls it an alias; players see "username".
+function friendly(message: string): string {
+  if (!message || message.startsWith('[object')) return 'Check your username and password.';
+  return message
+    .replace(/\bAlias\b/g, 'Username')
+    .replace(/\balias\b/g, 'username');
+}
 
 // Register or sign in to get a bearer session. The backend requires this before an attempt.
 export default function AuthScreen({
@@ -11,7 +20,7 @@ export default function AuthScreen({
   onBack: () => void;
 }) {
   const [mode, setMode] = useState<'login' | 'register'>('register');
-  const [alias, setAlias] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -21,11 +30,11 @@ export default function AuthScreen({
     setError(null);
     setBusy(true);
     try {
-      if (mode === 'register') await register(alias, password);
-      else await login(alias, password);
+      if (mode === 'register') await register(username, password);
+      else await login(username, password);
       onAuthed();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Something went wrong. Try again.');
+      setError(err instanceof ApiError ? friendly(err.message) : 'Something went wrong. Try again.');
     } finally {
       setBusy(false);
     }
@@ -38,10 +47,14 @@ export default function AuthScreen({
       <form className="auth-card" onSubmit={submit}>
         <h1 className="auth-title">{mode === 'register' ? 'JOIN LARPLE' : 'WELCOME BACK'}</h1>
         <label>
-          Alias
+          Username
           <input
-            value={alias}
-            onChange={(e) => setAlias(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            name="username"
+            title="2–30 letters, numbers, _ or -"
+            autoCapitalize="none"
+            spellCheck={false}
             autoComplete="username"
             minLength={2}
             maxLength={30}
@@ -72,10 +85,12 @@ export default function AuthScreen({
           <button
             type="button"
             className="linkbtn"
-            onClick={() => {
-              setMode(mode === 'register' ? 'login' : 'register');
-              setError(null);
-            }}
+            onClick={() =>
+              smoothly(() => {
+                setMode(mode === 'register' ? 'login' : 'register');
+                setError(null);
+              })
+            }
           >
             {mode === 'register' ? 'Sign in' : 'Register'}
           </button>

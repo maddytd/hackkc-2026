@@ -41,8 +41,13 @@ def create_app(settings=None):
 
     @app.get("/health")
     def health():
+        issues = attempts.readiness_issues(settings)
         return {
             "status": "ok",
+            # "status" is process liveness; "ready" says whether a round can be scored.
+            "ready": not issues,
+            "issues": issues,
+            "day": attempts.day_at(time.time(), settings),
             "judge_mode": settings.judge_mode,
             "day_override": day_override_allowed(),
             "processing_notice": {
@@ -52,18 +57,15 @@ def create_app(settings=None):
             }[settings.judge_mode],
         }
 
-    def auth_limit(request):
-        ip = request.client.host if request.client else "unknown"
-        rate_limit(settings, "auth:" + ip, 10)
-
     @app.post("/auth/register", status_code=201)
-    def register(body: Credentials, request: Request):
-        auth_limit(request)
+    def register(body: Credentials):
         return create_session(settings, body, register=True)
 
     @app.post("/auth/login")
     def login(body: Credentials, request: Request):
-        auth_limit(request)
+        # Only password guessing is throttled; sign-up has no limit.
+        ip = request.client.host if request.client else "unknown"
+        rate_limit(settings, "auth:" + ip, settings.login_attempts_per_minute)
         return create_session(settings, body)
 
     @app.delete("/auth/session", status_code=204)
@@ -95,7 +97,7 @@ def create_app(settings=None):
 
     @app.get("/attempts/current")
     def current(player: Annotated[dict, Depends(authenticate)], day: date | None = None):
-        selected = demo_day(day) or attempts.day_at(time.time())
+        selected = demo_day(day) or attempts.day_at(time.time(), settings)
         with connect(settings) as db:
             row = db.execute(
                 "SELECT * FROM attempts WHERE player_id=? AND day=? AND status!='replaced'",
@@ -164,7 +166,7 @@ def create_app(settings=None):
                 if current_row["status"] != "uploading":
                     raise HTTPException(409, "Upload is no longer active")
                 # Reserve a job only after a valid upload; failed requests do not spend quota.
-                today = attempts.day_at(time.time())
+                today = attempts.day_at(time.time(), settings)
                 db.execute("INSERT OR IGNORE INTO daily_usage VALUES (?,0)", (today,))
                 usage = db.execute("SELECT jobs FROM daily_usage WHERE day=?", (today,)).fetchone()[
                     0
@@ -195,7 +197,7 @@ def create_app(settings=None):
     def leaderboard(day: date | None = None, limit: int = 50, offset: int = 0):
         if not 1 <= limit <= 100 or not 0 <= offset <= 10000:
             raise HTTPException(422, "Invalid pagination")
-        selected = day.isoformat() if day else attempts.day_at(time.time())
+        selected = day.isoformat() if day else attempts.day_at(time.time(), settings)
         with connect(settings) as db:
             rows = db.execute(
                 "SELECT * FROM (SELECT p.alias,s.final_score,s.accuracy,s.confidence,s.delivery,"
@@ -210,7 +212,7 @@ def create_app(settings=None):
             has_demo_scores = attempts.has_seeded_demo_scores(db, selected)
         return {
             "day": selected,
-            "timezone": "UTC",
+            "timezone": f"UTC{settings.day_utc_offset_hours:+03d}:00",
             "demo": bool((challenge and challenge[0] == "demo") or has_demo_scores),
             "entries": [dict(row) for row in rows],
         }

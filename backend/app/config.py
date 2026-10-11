@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     provider_cooldown_seconds: int = Field(default=60, ge=1, le=3600)
     questions_file: Path = ROOT / "content/questions_niche.json"
     invite_code: str = ""
+    # Per-IP login budget (sign-up is unlimited). A room on one Wi-Fi network shares an address.
+    login_attempts_per_minute: int = Field(default=60, ge=1, le=10000)
+    # Competition days roll over at local midnight: UTC-5 is US Central daylight time.
+    day_utc_offset_hours: int = Field(default=-5, ge=-12, le=14)
     max_upload_bytes: int = Field(default=12 * 1024 * 1024, ge=1024, le=12 * 1024 * 1024)
     max_daily_jobs: int = Field(default=100, ge=1)
     max_replacements: int = Field(default=3, ge=0, le=3)

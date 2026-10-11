@@ -159,19 +159,23 @@ def run_once(settings, judge_fn=judge):
                 status = (
                     "judge_failed"
                     if isinstance(exc, CallBudgetExhausted)
-                    or access_denied
                     or (gemini_failure is not None and not gemini_failure.retryable)
                     or current["tries"] >= settings.max_judge_tries
                     else "queued"
                 )
                 message = (
-                    "AI evaluation is blocked by AWS model access permissions"
+                    "AI scoring is waiting for AWS model access; retrying this recording shortly"
+                    if access_denied and status == "queued"
+                    else "AI evaluation is blocked by AWS model access permissions"
                     if access_denied
                     else "AI evaluation failed; retrying the same recording"
                     if status == "queued"
                     else "AI evaluation failed after bounded retries"
                 )
                 delay = 2 ** current["tries"]
+                if access_denied:
+                    # Access is often granted minutes later (new accounts, model approval).
+                    delay = max(delay, settings.provider_cooldown_seconds)
                 if gemini_failure:
                     delay = max(delay, gemini_failure.delay)
                     message = gemini_failure.message + (
@@ -197,7 +201,12 @@ def main():
     initialize(settings)
     log.info("Worker started in %s mode", settings.judge_mode)
     while True:
-        if not run_once(settings):
+        try:
+            worked = run_once(settings)
+        except Exception as exc:  # noqa: BLE001 -- one failed pass must not stop all judging
+            log.error("Worker pass failed (%s); continuing", type(exc).__name__)
+            worked = False
+        if not worked:
             time.sleep(1)
 
 

@@ -147,6 +147,7 @@ export async function getHealth(): Promise<{
   judge_mode: string;
   processing_notice?: string;
   day_override?: boolean;
+  day?: string; // the server's current competition day (local-midnight rollover)
 }> {
   if (!API_URL) return { status: 'ok', judge_mode: 'demo', day_override: true };
   return req('/health', { auth: false });

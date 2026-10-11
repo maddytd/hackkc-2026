@@ -628,6 +628,11 @@ body {
     16px system-ui,
     sans-serif;
 }
+.scoring-status .scoring-slow {
+  margin-top: 6px;
+  font-size: 14px;
+  opacity: 0.85;
+}
 .scoring-status .spinner {
   width: 22px;
   height: 22px;
@@ -907,7 +912,8 @@ body {
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
+  place-content: center;
+  gap: 8px;
   padding: 12px;
   text-align: center;
   font-size: 0.85rem;

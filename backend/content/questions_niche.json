@@ -62,5 +62,389 @@
     "difficulty": "hard",
     "context": "Name the technique and explain its basic idea if you can.",
     "guide": "Correct answer: X-ray crystallography. Accept X-ray diffraction crystallography or a clear description of determining a crystal's molecular structure from X-ray diffraction patterns. 'Crystallography' alone earns partial accuracy unless the explanation specifies X-rays. Electron microscopy and NMR spectroscopy are incorrect. Extra explanation is optional when the full technique is named. Score confidence and delivery independently. Source: https://www.nobelprize.org/womenwhochangedscience/stories/dorothy-hodgkin"
+  },
+  {
+    "id": "niche_io_volcanism",
+    "text": "Heated by tidal forces from its giant planet, which moon of Jupiter is the most volcanically active body in the solar system?",
+    "category": "astronomy",
+    "difficulty": "hard",
+    "context": "Name the moon and explain what drives its volcanoes if you can.",
+    "guide": "Correct answer: Io. Accept a recognizable spoken pronunciation such as 'EYE-oh' or 'EE-oh'. Europa, Ganymede, and Callisto are incorrect; Enceladus orbits Saturn. Naming Io earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Io_(moon)"
+  },
+  {
+    "id": "niche_pale_blue_dot",
+    "text": "Which spacecraft turned its camera back toward home in 1990 and took the photograph known as the 'Pale Blue Dot'?",
+    "category": "astronomy",
+    "difficulty": "hard",
+    "context": "Name the spacecraft and say why the image is famous if you can.",
+    "guide": "Correct answer: Voyager 1. Accept 'Voyager One'. 'Voyager' without a number earns partial accuracy. Voyager 2, Pioneer 10, and Cassini are incorrect. Naming Voyager 1 earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Pale_Blue_Dot"
+  },
+  {
+    "id": "niche_payne_composition",
+    "text": "Cecilia Payne-Gaposchkin's 1925 doctoral thesis showed that stars are made overwhelmingly of which two elements?",
+    "category": "astronomy",
+    "difficulty": "hard",
+    "context": "Name both elements.",
+    "guide": "Correct answer: hydrogen and helium. Accept the two elements in either order. Naming only hydrogen or only helium earns partial accuracy. Iron, carbon, and oxygen are incorrect. Naming both hydrogen and helium earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Cecilia_Payne-Gaposchkin"
+  },
+  {
+    "id": "niche_bell_pulsars",
+    "text": "As a graduate student in 1967, Jocelyn Bell Burnell detected the first of which rapidly rotating, radio-pulsing stars?",
+    "category": "astronomy",
+    "difficulty": "hard",
+    "context": "Name the type of object and describe it if you can.",
+    "guide": "Correct answer: pulsars. Accept 'pulsar', 'a pulsar', or 'pulsating radio star'. 'Neutron star' without the word pulsar earns partial accuracy. Quasars and black holes are incorrect. Naming pulsars earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Jocelyn_Bell_Burnell"
+  },
+  {
+    "id": "niche_leavitt_cepheids",
+    "text": "Henrietta Swan Leavitt discovered a relationship between brightness and pulsation period in which type of variable star, later used to measure cosmic distances?",
+    "category": "astronomy",
+    "difficulty": "hard",
+    "context": "Name the type of star.",
+    "guide": "Correct answer: Cepheid variables. Accept 'Cepheids', 'Cepheid variable stars', and recognizable pronunciations such as 'SEF-ee-id' or 'SEE-fee-id'. 'Variable stars' alone earns partial accuracy. Supernovae and RR Lyrae stars are incorrect. Naming Cepheid variables earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Henrietta_Swan_Leavitt"
+  },
+  {
+    "id": "niche_michelson_morley",
+    "text": "The 1887 Michelson-Morley experiment famously failed to detect which hypothetical medium once thought to carry light waves?",
+    "category": "physics",
+    "difficulty": "hard",
+    "context": "Name the medium and explain why the result mattered if you can.",
+    "guide": "Correct answer: the luminiferous aether. Accept 'aether', 'ether', or 'the luminiferous ether'. Dark matter, the vacuum, and the Higgs field are incorrect. Naming the aether earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Michelson%E2%80%93Morley_experiment"
+  },
+  {
+    "id": "niche_meitner_fission",
+    "text": "Lise Meitner and her nephew Otto Frisch gave the first theoretical explanation of which nuclear process, discovered in 1938?",
+    "category": "physics",
+    "difficulty": "hard",
+    "context": "Name the process and describe it if you can.",
+    "guide": "Correct answer: nuclear fission. Accept 'fission' or 'the splitting of the atomic nucleus'. Nuclear fusion and radioactive decay are incorrect. Naming fission earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Lise_Meitner"
+  },
+  {
+    "id": "niche_wu_parity",
+    "text": "Which physicist led the 1956-57 cobalt-60 experiment showing that parity is not conserved in the weak interaction?",
+    "category": "physics",
+    "difficulty": "hard",
+    "context": "Name the scientist.",
+    "guide": "Correct answer: Chien-Shiung Wu. Accept 'C. S. Wu', 'Madame Wu', or 'Wu'. Tsung-Dao Lee and Chen-Ning Yang proposed the idea and won the Nobel Prize but did not run the experiment; naming them earns partial accuracy. Marie Curie is incorrect. The question identifies a person, so no explanation is required. Naming Chien-Shiung Wu earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Chien-Shiung_Wu"
+  },
+  {
+    "id": "niche_curie_polonium",
+    "text": "Marie and Pierre Curie named which element, discovered in 1898, after Marie's homeland?",
+    "category": "chemistry",
+    "difficulty": "hard",
+    "context": "Name the element and the country it honours if you can.",
+    "guide": "Correct answer: polonium. Accept 'polonium, named after Poland'. Radium was also discovered by the Curies but is not named after a country and is incorrect. Francium and germanium are incorrect. Naming polonium earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Polonium"
+  },
+  {
+    "id": "niche_helium_sun",
+    "text": "Which element was detected in the Sun's spectrum during an 1868 eclipse, years before it was isolated on Earth?",
+    "category": "chemistry",
+    "difficulty": "hard",
+    "context": "Name the element and explain where its name comes from if you can.",
+    "guide": "Correct answer: helium. Accept 'helium, from the Greek word helios for Sun'. Hydrogen, neon, and argon are incorrect. Naming helium earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Helium"
+  },
+  {
+    "id": "niche_mendeleev_table",
+    "text": "Which Russian chemist published a periodic table in 1869 that left gaps for elements not yet discovered?",
+    "category": "chemistry",
+    "difficulty": "hard",
+    "context": "Name the chemist.",
+    "guide": "Correct answer: Dmitri Mendeleev. Accept 'Mendeleev', 'Mendeleyev', or 'Dmitri Ivanovich Mendeleev'. Lothar Meyer and John Newlands proposed related systems but are incorrect. The question identifies a person, so no explanation is required. Naming Mendeleev earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Dmitri_Mendeleev"
+  },
+  {
+    "id": "niche_mcclintock_transposons",
+    "text": "Barbara McClintock won a Nobel Prize for discovering genetic elements that can move to new positions in the genome. What are they called?",
+    "category": "biology",
+    "difficulty": "hard",
+    "context": "Name them and say which plant she studied if you can.",
+    "guide": "Correct answer: transposons. Accept 'transposable elements', 'jumping genes', or 'mobile genetic elements'. Plasmids and introns are incorrect. Mentioning maize or corn is optional. Naming transposons or jumping genes earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Barbara_McClintock"
+  },
+  {
+    "id": "niche_margulis_endosymbiosis",
+    "text": "Lynn Margulis championed which theory explaining that mitochondria and chloroplasts descend from once free-living bacteria?",
+    "category": "biology",
+    "difficulty": "hard",
+    "context": "Name the theory and summarise it if you can.",
+    "guide": "Correct answer: endosymbiotic theory. Accept 'endosymbiosis', 'symbiogenesis', or 'serial endosymbiosis theory'. 'Symbiosis' alone earns partial accuracy. Natural selection and the Gaia hypothesis are incorrect, although Margulis also worked on Gaia. Naming endosymbiosis earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Lynn_Margulis"
+  },
+  {
+    "id": "niche_franklin_photo51",
+    "text": "'Photo 51', taken in Rosalind Franklin's laboratory in 1952, is an X-ray diffraction image of which molecule?",
+    "category": "biology",
+    "difficulty": "hard",
+    "context": "Name the molecule and say what the image revealed if you can.",
+    "guide": "Correct answer: DNA. Accept 'deoxyribonucleic acid' or 'the DNA double helix'. RNA, haemoglobin, and penicillin are incorrect. Naming DNA earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Photo_51"
+  },
+  {
+    "id": "niche_snow_cholera",
+    "text": "Which physician traced an 1854 London cholera outbreak to a contaminated water pump on Broad Street?",
+    "category": "medicine",
+    "difficulty": "hard",
+    "context": "Name the physician and explain how he showed it if you can.",
+    "guide": "Correct answer: John Snow. Accept 'Dr John Snow' or 'Snow'. Edward Jenner, Joseph Lister, and Louis Pasteur are incorrect. The question identifies a person, so no explanation is required. Naming John Snow earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/John_Snow"
+  },
+  {
+    "id": "niche_semmelweis_handwashing",
+    "text": "In 1847 the Hungarian physician Ignaz Semmelweis sharply cut deaths in a Vienna maternity ward by requiring doctors to do what?",
+    "category": "medicine",
+    "difficulty": "hard",
+    "context": "Describe the practice he introduced.",
+    "guide": "Correct answer: wash their hands. Accept 'handwashing', 'hand disinfection', or 'washing hands with a chlorinated lime solution'. Wearing masks, sterilising instruments, and vaccination are incorrect. Naming handwashing earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Ignaz_Semmelweis"
+  },
+  {
+    "id": "niche_konigsberg_bridges",
+    "text": "Leonhard Euler's 1736 solution to a puzzle about crossing seven bridges in which Prussian city is regarded as the beginning of graph theory?",
+    "category": "mathematics",
+    "difficulty": "hard",
+    "context": "Name the city and the puzzle if you can.",
+    "guide": "Correct answer: Königsberg. Accept 'Konigsberg', 'Koenigsberg', or its modern name 'Kaliningrad'. Berlin, Basel, and Saint Petersburg are incorrect. Naming Königsberg earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Seven_Bridges_of_K%C3%B6nigsberg"
+  },
+  {
+    "id": "niche_ramanujan_1729",
+    "text": "The number 1729, the smallest expressible as a sum of two positive cubes in two different ways, is linked to an anecdote about which Indian mathematician?",
+    "category": "mathematics",
+    "difficulty": "hard",
+    "context": "Name the mathematician.",
+    "guide": "Correct answer: Srinivasa Ramanujan. Accept 'Ramanujan'. G. H. Hardy told the story and shares the name 'Hardy-Ramanujan number'; naming only Hardy earns partial accuracy. Aryabhata is incorrect. The question identifies a person, so no explanation is required. Naming Ramanujan earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/1729_(number)"
+  },
+  {
+    "id": "niche_lovelace_program",
+    "text": "Who wrote the 1843 notes on Charles Babbage's Analytical Engine that include what is often called the first published computer program?",
+    "category": "computing",
+    "difficulty": "hard",
+    "context": "Name the author.",
+    "guide": "Correct answer: Ada Lovelace. Accept 'Augusta Ada King', 'Countess of Lovelace', 'Ada Byron', or 'Lovelace'. Charles Babbage designed the machine and is incorrect. Grace Hopper is incorrect. The question identifies a person, so no explanation is required. Naming Ada Lovelace earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Ada_Lovelace"
+  },
+  {
+    "id": "niche_hopper_cobol",
+    "text": "Grace Hopper's FLOW-MATIC strongly influenced which business-oriented programming language first specified in 1959?",
+    "category": "computing",
+    "difficulty": "hard",
+    "context": "Name the language.",
+    "guide": "Correct answer: COBOL. Accept 'Common Business-Oriented Language'. FORTRAN, BASIC, and ALGOL are incorrect. Naming COBOL earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/COBOL"
+  },
+  {
+    "id": "niche_turing_bombe",
+    "text": "Which electromechanical machine, developed from Alan Turing's design, was used at Bletchley Park to help find daily Enigma settings?",
+    "category": "technology",
+    "difficulty": "hard",
+    "context": "Name the machine.",
+    "guide": "Correct answer: the Bombe. Accept 'Bombe', 'the Turing-Welchman Bombe', or a recognizable pronunciation such as 'bomb'. Colossus was built for a different cipher and earns no credit. 'Enigma' is the cipher machine being broken and is incorrect. Naming the Bombe earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Bombe"
+  },
+  {
+    "id": "niche_arpanet",
+    "text": "Which US Defense Department research network, which sent its first message in 1969, is regarded as the forerunner of the Internet?",
+    "category": "technology",
+    "difficulty": "hard",
+    "context": "Name the network.",
+    "guide": "Correct answer: ARPANET. Accept 'the ARPA network' or 'Advanced Research Projects Agency Network'. The World Wide Web, NSFNET, and Ethernet are incorrect. Naming ARPANET earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/ARPANET"
+  },
+  {
+    "id": "niche_mansa_musa",
+    "text": "Which ruler of the Mali Empire made a 1324 pilgrimage to Mecca so lavish that his gifts of gold reportedly depressed its value in Cairo?",
+    "category": "history",
+    "difficulty": "hard",
+    "context": "Name the ruler.",
+    "guide": "Correct answer: Mansa Musa. Accept 'Musa I of Mali', 'Musa Keita', or 'Kankan Musa'. Sundiata Keita founded the empire and is incorrect. Askia Muhammad ruled Songhai and is incorrect. The question identifies a person, so no explanation is required. Naming Mansa Musa earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Mansa_Musa"
+  },
+  {
+    "id": "niche_justinian_hagia_sophia",
+    "text": "Which Byzantine emperor commissioned the Hagia Sophia that was completed in Constantinople in 537?",
+    "category": "history",
+    "difficulty": "hard",
+    "context": "Name the emperor.",
+    "guide": "Correct answer: Justinian I. Accept 'Justinian', 'Justinian the Great', or 'Emperor Justinian'. Constantine the Great founded the city but is incorrect. Theodosius is incorrect. The question identifies a person, so no explanation is required. Naming Justinian earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Hagia_Sophia"
+  },
+  {
+    "id": "niche_tordesillas",
+    "text": "The 1494 Treaty of Tordesillas divided newly claimed lands outside Europe between which two kingdoms?",
+    "category": "history",
+    "difficulty": "hard",
+    "context": "Name both kingdoms.",
+    "guide": "Correct answer: Spain and Portugal. Accept 'Castile and Portugal' or 'the Spanish and Portuguese crowns', in either order. Naming only one of the two earns partial accuracy. England, France, and the Netherlands are incorrect. Naming both Spain and Portugal earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Treaty_of_Tordesillas"
+  },
+  {
+    "id": "niche_louverture",
+    "text": "Which formerly enslaved general led the revolution in the French colony of Saint-Domingue and died in a French prison in 1803?",
+    "category": "history",
+    "difficulty": "hard",
+    "context": "Name the leader and the country that emerged if you can.",
+    "guide": "Correct answer: Toussaint Louverture. Accept 'Toussaint L'Ouverture', 'Toussaint', or 'Louverture'. Jean-Jacques Dessalines declared Haitian independence in 1804 and earns partial accuracy. Simon Bolivar is incorrect. Naming Toussaint Louverture earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Toussaint_Louverture"
+  },
+  {
+    "id": "niche_sejong_hangul",
+    "text": "Which fifteenth-century Korean king is credited with creating the Hangul alphabet?",
+    "category": "history",
+    "difficulty": "hard",
+    "context": "Name the king.",
+    "guide": "Correct answer: Sejong the Great. Accept 'King Sejong' or 'Sejong'. Taejo founded the Joseon dynasty and is incorrect. The question identifies a person, so no explanation is required. Naming Sejong earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Sejong_the_Great"
+  },
+  {
+    "id": "niche_liberty_memorial_ww1",
+    "text": "Kansas City's Liberty Memorial is home to the United States' national museum and memorial dedicated to which war?",
+    "category": "history",
+    "difficulty": "hard",
+    "context": "Name the war.",
+    "guide": "Correct answer: World War I. Accept 'the First World War', 'World War One', or 'the Great War'. World War II, the Civil War, and the Korean War are incorrect. Naming World War I earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/National_WWI_Museum_and_Memorial"
+  },
+  {
+    "id": "niche_gobekli_tepe",
+    "text": "Which Neolithic site in southeastern Turkey, with carved T-shaped pillars arranged in circles, dates back to roughly 9500 BCE?",
+    "category": "archaeology",
+    "difficulty": "hard",
+    "context": "Name the site and say why it is significant if you can.",
+    "guide": "Correct answer: Göbekli Tepe. Accept 'Gobekli Tepe' and recognizable spoken pronunciations. Catalhoyuk is a later Neolithic settlement in Turkey and earns no credit. Stonehenge is incorrect. Naming Göbekli Tepe earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/G%C3%B6bekli_Tepe"
+  },
+  {
+    "id": "niche_linear_b",
+    "text": "Which Bronze Age script, found on clay tablets at Knossos and Pylos, did Michael Ventris decipher in 1952 as an early form of Greek?",
+    "category": "archaeology",
+    "difficulty": "hard",
+    "context": "Name the script.",
+    "guide": "Correct answer: Linear B. Accept 'the Linear B script'. Linear A remains undeciphered and is incorrect. Cuneiform and the Phoenician alphabet are incorrect. Naming Linear B earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Linear_B"
+  },
+  {
+    "id": "niche_terracotta_army",
+    "text": "Farmers digging a well in 1974 uncovered the Terracotta Army, built to guard the tomb of which Chinese emperor?",
+    "category": "archaeology",
+    "difficulty": "hard",
+    "context": "Name the emperor.",
+    "guide": "Correct answer: Qin Shi Huang. Accept 'Qin Shi Huangdi', 'the First Emperor of Qin', 'the first emperor of China', and recognizable pronunciations such as 'chin shih hwang'. Kublai Khan and the Yongle Emperor are incorrect. The question identifies a person, so no explanation is required. Naming Qin Shi Huang earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Terracotta_Army"
+  },
+  {
+    "id": "niche_bosch_garden",
+    "text": "Which Netherlandish painter created the triptych 'The Garden of Earthly Delights', now in the Prado?",
+    "category": "art",
+    "difficulty": "hard",
+    "context": "Name the painter.",
+    "guide": "Correct answer: Hieronymus Bosch. Accept 'Bosch' or 'Jheronimus Bosch'. Pieter Bruegel the Elder and Jan van Eyck are incorrect. The question identifies a person, so no explanation is required. Naming Bosch earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/The_Garden_of_Earthly_Delights"
+  },
+  {
+    "id": "niche_gentileschi_judith",
+    "text": "Which Italian Baroque painter, the first woman admitted to Florence's Accademia delle Arti del Disegno, painted 'Judith Slaying Holofernes' around 1620?",
+    "category": "art",
+    "difficulty": "hard",
+    "context": "Name the painter.",
+    "guide": "Correct answer: Artemisia Gentileschi. Accept 'Gentileschi' or 'Artemisia'. Caravaggio painted an earlier treatment of the subject and is incorrect. Orazio Gentileschi was her father and is incorrect. The question identifies a person, so no explanation is required. Naming Artemisia Gentileschi earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Artemisia_Gentileschi"
+  },
+  {
+    "id": "niche_chiaroscuro",
+    "text": "Which Italian term, literally meaning 'light-dark', describes the use of strong contrasts between light and shadow in painting?",
+    "category": "art",
+    "difficulty": "hard",
+    "context": "Give the term and name an artist known for it if you can.",
+    "guide": "Correct answer: chiaroscuro. Accept recognizable pronunciations such as 'kee-ar-oh-SKOOR-oh'. Tenebrism is a more extreme related style and earns partial accuracy. Sfumato and impasto are incorrect. Naming chiaroscuro earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Chiaroscuro"
+  },
+  {
+    "id": "niche_ukiyo_e",
+    "text": "Which genre of Japanese woodblock prints and paintings has a name meaning 'pictures of the floating world'?",
+    "category": "art",
+    "difficulty": "hard",
+    "context": "Name the genre.",
+    "guide": "Correct answer: ukiyo-e. Accept 'ukiyoe' and recognizable pronunciations such as 'oo-kee-yo-eh'. Sumi-e is ink wash painting and is incorrect. Manga and origami are incorrect. Naming ukiyo-e earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Ukiyo-e"
+  },
+  {
+    "id": "niche_stravinsky_rite",
+    "text": "Which composer wrote 'The Rite of Spring', whose 1913 Paris premiere provoked an uproar in the audience?",
+    "category": "music",
+    "difficulty": "hard",
+    "context": "Name the composer.",
+    "guide": "Correct answer: Igor Stravinsky. Accept 'Stravinsky'. Claude Debussy, Sergei Prokofiev, and Maurice Ravel are incorrect. The question identifies a person, so no explanation is required. Naming Stravinsky earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/The_Rite_of_Spring"
+  },
+  {
+    "id": "niche_hildegard_ordo",
+    "text": "Which twelfth-century German abbess composed the sacred music drama 'Ordo Virtutum'?",
+    "category": "music",
+    "difficulty": "hard",
+    "context": "Name the composer.",
+    "guide": "Correct answer: Hildegard of Bingen. Accept 'Hildegard von Bingen', 'Saint Hildegard', or 'Hildegard'. Julian of Norwich and Clara Schumann are incorrect. The question identifies a person, so no explanation is required. Naming Hildegard of Bingen earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Ordo_Virtutum"
+  },
+  {
+    "id": "niche_tale_of_genji",
+    "text": "Which early eleventh-century Japanese work by the court lady Murasaki Shikibu is often described as the world's first novel?",
+    "category": "literature",
+    "difficulty": "hard",
+    "context": "Give the title.",
+    "guide": "Correct answer: The Tale of Genji. Accept 'Genji Monogatari' or 'Tale of Genji'. The Pillow Book is by Sei Shonagon and is incorrect. The Tale of the Heike is incorrect. Naming The Tale of Genji earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/The_Tale_of_Genji"
+  },
+  {
+    "id": "niche_achebe_things_fall_apart",
+    "text": "Which Nigerian author wrote the 1958 novel 'Things Fall Apart'?",
+    "category": "literature",
+    "difficulty": "hard",
+    "context": "Name the author.",
+    "guide": "Correct answer: Chinua Achebe. Accept 'Achebe'. Wole Soyinka and Ngugi wa Thiong'o are incorrect. The question identifies a person, so no explanation is required. Naming Chinua Achebe earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Things_Fall_Apart"
+  },
+  {
+    "id": "niche_gilgamesh",
+    "text": "Which ancient Mesopotamian epic follows a king of Uruk who seeks immortality after the death of his companion Enkidu?",
+    "category": "literature",
+    "difficulty": "hard",
+    "context": "Give the title.",
+    "guide": "Correct answer: the Epic of Gilgamesh. Accept 'Gilgamesh'. The Enuma Elish is the Babylonian creation epic and is incorrect. The Iliad is incorrect. Naming Gilgamesh earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Epic_of_Gilgamesh"
+  },
+  {
+    "id": "niche_challenger_deep",
+    "text": "What is the name of the deepest known point in Earth's oceans, located at the southern end of the Mariana Trench?",
+    "category": "geography",
+    "difficulty": "hard",
+    "context": "Name the point.",
+    "guide": "Correct answer: Challenger Deep. Accept 'the Challenger Deep'. 'The Mariana Trench' names the trench rather than the point and earns partial accuracy. The Puerto Rico Trench and Tonga Trench are incorrect. Naming Challenger Deep earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Challenger_Deep"
+  },
+  {
+    "id": "niche_lesotho_enclave",
+    "text": "Which landlocked kingdom is completely surrounded by South Africa?",
+    "category": "geography",
+    "difficulty": "hard",
+    "context": "Name the country.",
+    "guide": "Correct answer: Lesotho. Accept recognizable pronunciations such as 'leh-SOO-too'. Eswatini, formerly Swaziland, also borders Mozambique and is incorrect. Botswana is incorrect. Naming Lesotho earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Lesotho"
+  },
+  {
+    "id": "niche_wegener_drift",
+    "text": "Alfred Wegener's 1912 hypothesis that the continents slowly move across Earth's surface is known by what name?",
+    "category": "earth science",
+    "difficulty": "hard",
+    "context": "Name the hypothesis and the supercontinent he proposed if you can.",
+    "guide": "Correct answer: continental drift. Accept 'the theory of continental drift' or 'continental displacement'. Plate tectonics is the later theory that explained the mechanism and earns partial accuracy. Mentioning Pangaea is optional. Naming continental drift earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Continental_drift"
+  },
+  {
+    "id": "niche_mohs_scale",
+    "text": "Which scale, devised in 1812, ranks the scratch resistance of minerals from talc at 1 to diamond at 10?",
+    "category": "earth science",
+    "difficulty": "hard",
+    "context": "Name the scale.",
+    "guide": "Correct answer: the Mohs scale. Accept 'Mohs hardness scale', 'Mohs scale of mineral hardness', or 'Mohs'. The Richter scale and the Vickers test are incorrect. Naming the Mohs scale earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Mohs_scale"
+  },
+  {
+    "id": "niche_esperanto",
+    "text": "Which constructed international language was first published by L. L. Zamenhof in 1887?",
+    "category": "linguistics",
+    "difficulty": "hard",
+    "context": "Name the language.",
+    "guide": "Correct answer: Esperanto. Accept recognizable spoken pronunciations. Volapuk, Interlingua, and Klingon are incorrect. Naming Esperanto earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Esperanto"
+  },
+  {
+    "id": "niche_sequoyah_syllabary",
+    "text": "Who created the Cherokee syllabary in the early 1820s, enabling the Cherokee Nation to read and write its own language?",
+    "category": "linguistics",
+    "difficulty": "hard",
+    "context": "Name the creator.",
+    "guide": "Correct answer: Sequoyah. Accept 'Sequoya', 'George Gist', or 'George Guess'. Tecumseh and Sitting Bull are incorrect. The question identifies a person, so no explanation is required. Naming Sequoyah earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Sequoyah"
+  },
+  {
+    "id": "niche_chinese_room",
+    "text": "Which 1980 thought experiment by the philosopher John Searle argues that a program manipulating symbols does not thereby understand them?",
+    "category": "philosophy",
+    "difficulty": "hard",
+    "context": "Name the thought experiment and summarise it if you can.",
+    "guide": "Correct answer: the Chinese room. Accept 'the Chinese room argument'. The Turing test is the idea it responds to and earns no credit. Mary's room and the trolley problem are incorrect. Naming the Chinese room earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Chinese_room"
+  },
+  {
+    "id": "niche_monopsony",
+    "text": "A monopoly has a single seller. What term describes a market dominated by a single buyer?",
+    "category": "economics",
+    "difficulty": "hard",
+    "context": "Give the term and an example if you can.",
+    "guide": "Correct answer: monopsony. Accept recognizable pronunciations such as 'muh-NOP-suh-nee'. Oligopoly, oligopsony, and duopoly are incorrect. Naming monopsony earns full factual credit; extra explanation is optional. Score confidence and delivery independently. Source: https://en.wikipedia.org/wiki/Monopsony"
   }
 ]

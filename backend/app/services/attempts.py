@@ -3,7 +3,7 @@ import json
 import shutil
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import HTTPException
 
@@ -65,8 +65,9 @@ DEMO_SCORES = (
 )
 
 
-def day_at(now):
-    return datetime.fromtimestamp(now, UTC).date().isoformat()
+def day_at(now, settings):
+    local = datetime.fromtimestamp(now, UTC) + timedelta(hours=settings.day_utc_offset_hours)
+    return local.date().isoformat()
 
 
 def owned(db, attempt_id, player_id):
@@ -99,13 +100,24 @@ def public(db, row):
     return result
 
 
-def available(settings):
+def readiness_issues(settings):
+    """Configuration problems that would stop a round from being recorded or scored."""
+    issues = []
     if not shutil.which(settings.ffprobe):
-        raise HTTPException(503, "Recording validation is unavailable; install ffprobe")
+        issues.append("Recording validation is unavailable; install ffprobe")
+    if settings.judge_mode != "demo" and not shutil.which(settings.ffmpeg):
+        issues.append("Recording conversion is unavailable; install ffmpeg")
     if settings.judge_mode == "gemini" and not settings.gemini_api_key:
-        raise HTTPException(503, "AI judging has not been configured")
+        issues.append("AI judging has not been configured")
     if settings.judge_mode == "aws" and not settings.aws_accuracy_model:
-        raise HTTPException(503, "Set the AWS accuracy model before starting a competition")
+        issues.append("Set the AWS accuracy model before starting a competition")
+    return issues
+
+
+def available(settings):
+    issues = readiness_issues(settings)
+    if issues:
+        raise HTTPException(503, issues[0])
 
 
 def build_questions(settings, day):
@@ -152,7 +164,7 @@ def set_demo_scores(settings, enabled):
     player_ids = tuple(player_id for player_id, *_ in DEMO_SCORES)
     placeholders = ",".join("?" for _ in player_ids)
     if enabled:
-        ensure_challenge(settings, day_at(time.time()))
+        ensure_challenge(settings, day_at(time.time(), settings))
     with connect(settings, write=True) as db:
         if not enabled:
             db.execute(f"DELETE FROM scores WHERE player_id IN ({placeholders})", player_ids)
@@ -160,7 +172,7 @@ def set_demo_scores(settings, enabled):
             db.execute(f"DELETE FROM sessions WHERE player_id IN ({placeholders})", player_ids)
             db.execute(f"DELETE FROM players WHERE id IN ({placeholders})", player_ids)
             return
-        day = day_at(time.time())
+        day = day_at(time.time(), settings)
         now = time.time()
         challenge = challenge_for(db, settings, day)
         question = json.dumps(daily_question(json.loads(challenge["questions"]), day))
@@ -258,7 +270,7 @@ def _current_attempt(db, player_id, day):
 
 def start(settings, player_id, day=None):
     # `day` override is only passed by the day-switcher; normal play uses today.
-    day = day or day_at(time.time())
+    day = day or day_at(time.time(), settings)
     # Return an existing attempt without any AI work (so it can be viewed even if AI is down).
     with connect(settings) as db:
         row = _current_attempt(db, player_id, day)

@@ -54,6 +54,8 @@ export default function App() {
         if (cancelled) return;
         setTesting(h.day_override ?? h.judge_mode === 'demo');
         if (h.processing_notice) setProcessingNotice(h.processing_notice);
+        // The server decides when the day rolls over; start the day-switcher there.
+        if (h.day) setSelectedDay(h.day);
       })
       .catch(() => {});
     return () => {
@@ -168,6 +170,7 @@ export default function App() {
         <PlayPage
           onFinish={finish}
           onError={fail}
+          onBack={() => smoothly(() => setScreen('start'))}
           day={testing ? selectedDay : undefined}
           testing={testing}
         />

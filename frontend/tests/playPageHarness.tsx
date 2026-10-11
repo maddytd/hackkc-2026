@@ -36,6 +36,9 @@ window.fetch = async (input, options) => {
   if (!path.startsWith('/__test_api/')) throw new Error('Unexpected test request: ' + path);
   if (options?.method === 'PUT') { uploads++; return Response.json(attempt('completed')); }
   if (options?.method === 'POST') return Response.json(attempt(initial));
+  if (path.includes('/attempts/current')) {
+    return Response.json(initial === 'recording' ? null : attempt(initial));
+  }
   polls++;
   return Response.json(attempt('judge_failed'));
 };

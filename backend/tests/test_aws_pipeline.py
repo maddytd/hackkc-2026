@@ -258,6 +258,19 @@ def test_permission_failure_does_not_try_another_model(setup, monkeypatch):
     upload(client, headers, aid)
     run_once(settings)
     assert len(calls) == 1
+    # Access may be granted shortly after; the same recording waits, then retries.
+    waiting = client.get(f"/attempts/{aid}", headers=headers).json()
+    assert waiting["status"] == "queued"
+    assert "waiting for AWS model access" in waiting["failure"]
+    assert not run_once(settings)
+    for _ in range(settings.max_judge_tries - 1):
+        with connect(settings, write=True) as db:
+            db.execute("UPDATE attempts SET next_run=0")
+        run_once(settings)
+    blocked = client.get(f"/attempts/{aid}", headers=headers).json()
+    assert blocked["status"] == "judge_failed"
+    assert "blocked by AWS model access" in blocked["failure"]
+    assert blocked["score"] is None
 
 
 def test_aws_daily_policy_locked_without_gemini_dependency(setup):

@@ -13,6 +13,7 @@ export default function StartScreen({
   day,
   onPrevDay,
   onNextDay,
+  processingNotice,
 }: {
   onStart: () => void;
   onLeaderboard: () => void;
@@ -23,6 +24,7 @@ export default function StartScreen({
   day: string;
   onPrevDay: () => void;
   onNextDay: () => void;
+  processingNotice: string;
 }) {
   const [settings, setSettings] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -118,6 +120,7 @@ export default function StartScreen({
         <button className="menu-how" onClick={() => howTo.current?.showModal()}>
           HOW TO PLAY <span>↗</span>
         </button>
+        <p className="processing-notice">{processingNotice}</p>
       </nav>
 
       <FunFact />

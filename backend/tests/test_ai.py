@@ -10,7 +10,7 @@ def test_confident_wrong_answer_scores_independently():
     result = Judgment.model_validate(
         {
             name: {"rating": rating, "feedback": "Evidence"}
-            for name, rating in [("accuracy", 0), ("confidence", 10), ("delivery", 10)]
+            for name, rating in [("accuracy", 0), ("confidence", 5000), ("delivery", 5000)]
         }
     )
     assert score(result)["final_score"] == 3333
@@ -21,6 +21,7 @@ def test_confident_wrong_answer_scores_independently():
 def test_strands_agent_configuration_and_video(monkeypatch, tmp_path, mime, video_format):
     video = tmp_path / "clip"
     video.write_bytes(b"video")
+    monkeypatch.setattr("app.ai.client.pegasus_video_bytes", lambda *args: b"video")
     captured = {}
     judgment = Judgment.model_validate(
         {
@@ -74,14 +75,13 @@ def test_strands_agent_configuration_and_video(monkeypatch, tmp_path, mime, vide
     }
     assert captured["async_closed"] and captured["sync_closed"]
     assert captured["schema"] is Judgment
-    assert captured["prompt"][1] == {
-        "video": {"format": video_format, "source": {"bytes": b"video"}}
-    }
+    assert captured["prompt"][1] == {"video": {"format": "mp4", "source": {"bytes": b"video"}}}
 
 
 def test_provider_failure_propagates_for_worker_retry(monkeypatch, tmp_path):
     video = tmp_path / "clip"
     video.write_bytes(b"video")
+    monkeypatch.setattr("app.ai.client.pegasus_video_bytes", lambda *args: b"video")
     monkeypatch.setattr("app.ai.client.VideoGeminiModel", lambda **kwargs: None)
 
     class BrokenAgent:
@@ -105,7 +105,7 @@ def test_demo_does_not_construct_agent(monkeypatch):
         raise AssertionError("Demo must not call a provider")
 
     monkeypatch.setattr("app.ai.client.Agent", forbidden)
-    assert judge(Settings(_env_file=None), {}, {"mode": "demo"}).accuracy.rating == 6
+    assert judge(Settings(_env_file=None), {}, {"mode": "demo"}).accuracy.rating == 3000
 
 
 def test_key_is_redacted_in_settings():
@@ -149,6 +149,7 @@ def test_agent_to_provider_native_structured_output(monkeypatch, tmp_path):
 
     video = tmp_path / "clip"
     video.write_bytes(b"video-with-audio")
+    monkeypatch.setattr("app.ai.client.pegasus_video_bytes", lambda *args: b"video-with-audio")
     expected = Judgment.model_validate(
         {
             name: {"rating": 7, "feedback": "Observed evidence"}
@@ -187,7 +188,7 @@ def test_agent_to_provider_native_structured_output(monkeypatch, tmp_path):
     assert result == expected
     assert captured["model"] == "test-model"
     content = types.Content.model_validate(captured["contents"][0])
-    assert content.parts[1].inline_data.mime_type == "video/webm"
+    assert content.parts[1].inline_data.mime_type == "video/mp4"
     assert (
         types.GenerateContentConfig.model_validate(captured["config"]).system_instruction
         == "Rubric"

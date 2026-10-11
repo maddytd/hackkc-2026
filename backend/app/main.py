@@ -45,6 +45,11 @@ def create_app(settings=None):
             "status": "ok",
             "judge_mode": settings.judge_mode,
             "day_override": day_override_allowed(),
+            "processing_notice": {
+                "aws": "By playing, you agree to send your recording to Amazon Bedrock, using TwelveLabs and the configured judging models, for AI scoring.",
+                "gemini": "By playing, you agree to send your recording to Google's Gemini service for AI scoring.",
+                "demo": "Demo scoring uses fixed ratings and does not send your recording to an AI provider.",
+            }[settings.judge_mode],
         }
 
     def auth_limit(request):

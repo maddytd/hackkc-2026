@@ -54,6 +54,8 @@ def validate_media(path, settings):
         duration = max(durations, default=0)
         if not math.isfinite(duration) or not 0 < duration <= settings.recording_seconds + 1:
             raise InvalidMedia("Recording must be between 0 and 31 seconds")
+        if settings.judge_mode == "aws" and duration < 5:
+            raise InvalidMedia("Record for at least 5 seconds before submitting for AI scoring")
         return mime
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, ValueError, KeyError) as exc:
         if isinstance(exc, InvalidMedia):

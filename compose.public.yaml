@@ -14,8 +14,9 @@ x-backend: &backend
   env_file: backend/.env
   environment:
     LARP_STORAGE_DIR: /data
-    # Public play: everyone is locked to today's question.
-    LARP_ALLOW_DAY_OVERRIDE: "false"
+    # Shows the day switcher in Settings to every visitor. Set to "false" to lock
+    # everyone to today's question.
+    LARP_ALLOW_DAY_OVERRIDE: "true"
     # Every player arrives through the web container, so they share one address.
     LARP_LOGIN_ATTEMPTS_PER_MINUTE: "600"
     AWS_PROFILE: ${AWS_PROFILE:-larple}

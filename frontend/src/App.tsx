@@ -87,8 +87,14 @@ export default function App() {
 
   const finish = useCallback((attempt: Attempt, recording: Blob | null) => {
     setResult(attempt);
-    if (recording) setRecordingUrl(URL.createObjectURL(recording));
+    setRecordingUrl(recording ? URL.createObjectURL(recording) : null);
     setScreen('results');
+    // A round that was already played arrives without its recording; show the saved one
+    // if this device still has it.
+    if (!recording && attempt.day)
+      void loadRecording(attempt.day).then((blob) => {
+        if (blob) setRecordingUrl(URL.createObjectURL(blob));
+      });
   }, []);
 
   const fail = useCallback((message: string, status?: number) => {

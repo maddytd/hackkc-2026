@@ -835,11 +835,9 @@ body {
   z-index: 5;
   text-align: center;
   padding: 14px 20px;
-  border-radius: 14px;
-  background: rgba(8, 8, 18, 0.6);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(0, 0, 0, 0.8);
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.5);
+  /* No box: the question floats over the blurred camera, kept readable by text shadows. */
+  background: none;
+  border: 0;
 }
 
 .prompt-bar h2 {
@@ -849,13 +847,19 @@ body {
   letter-spacing: 0.01em;
   font-size: clamp(1.15rem, 3.4vw, 1.8rem);
   color: #fff;
+  text-shadow:
+    0 3px 0 #000,
+    0 0 18px #000c;
 }
 
 .prompt-bar p {
   margin: 6px 0 0;
   font-family: system-ui, sans-serif;
   font-size: 0.9rem;
-  color: var(--muted);
+  color: #e6e6ea;
+  text-shadow:
+    0 1px 3px #000,
+    0 0 12px #000c;
 }
 
 .game-timer {

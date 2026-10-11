@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from app.ai.question_library import approve, validate_sources
+from app.ai.question_library import approve, approve_facts, validate_sources
 from app.config import Settings
 from app.schemas import QuestionBatch, SourceExcerpt
 from app.services.attempts import build_questions
@@ -76,3 +76,30 @@ def test_draft_requires_explicit_review_and_keeps_sources_private(tmp_path):
     assert bank[0]["source_url"] == sources[0].url
     with pytest.raises(ValueError, match="already"):
         approve(draft, output, "Test reviewer")
+
+
+def test_fun_facts_need_a_real_quote_and_a_human_reviewer(tmp_path):
+    source = {"url": "https://example.org/otters", "text": "Sea otters hold hands while sleeping."}
+    fact = {
+        "text": "Sea otters hold hands while they sleep.",
+        "source_url": source["url"],
+        "supporting_quote": "Sea otters hold hands while sleeping",
+    }
+    draft = tmp_path / "facts.json"
+    output = tmp_path / "library.json"
+    draft.write_text(json.dumps({"status": "fact-draft", "facts": [fact], "sources": [source]}))
+    with pytest.raises(ValueError, match="human"):
+        approve_facts(draft, output, " ")
+    approve_facts(draft, output, "Test reviewer")
+    bank = json.loads(output.read_text())
+    assert bank == [{**fact, "reviewed_by": "Test reviewer"}]
+    with pytest.raises(ValueError, match="already"):
+        approve_facts(draft, output, "Test reviewer")
+    invented = {
+        **fact,
+        "text": "Sea otters can fly short distances.",
+        "supporting_quote": "can fly",
+    }
+    draft.write_text(json.dumps({"status": "fact-draft", "facts": [invented], "sources": [source]}))
+    with pytest.raises(ValueError, match="quote"):
+        approve_facts(draft, output, "Test reviewer")

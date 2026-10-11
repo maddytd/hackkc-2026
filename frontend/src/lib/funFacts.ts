@@ -1,6 +1,8 @@
+import library from './funFactsLibrary.json';
+
 // Loading-screen "fun facts", shown like Fortnite's loading tips. Keep every entry true:
 // a wrong fun fact in a game about knowing things is a bad look.
-export const FUN_FACTS: string[] = [
+const BUILT_IN: string[] = [
   'Wombat poop is cube-shaped.',
   'Octopuses have three hearts.',
   'Botanically, bananas are berries. Strawberries are not.',
@@ -264,4 +266,11 @@ export const FUN_FACTS: string[] = [
   'People remember the first and last things in a list best.',
   'The fear of public speaking is called glossophobia.',
   'Most people speak at about 125 to 150 words per minute.',
+];
+
+// Sourced facts drafted with Bedrock and approved by a person (see backend question_library
+// `draft-facts` / `approve-facts`), added to the built-in list above.
+export const FUN_FACTS: string[] = [
+  ...BUILT_IN,
+  ...(library as { text: string }[]).map((fact) => fact.text),
 ];

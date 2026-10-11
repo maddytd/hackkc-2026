@@ -54,6 +54,20 @@ class QuestionBatch(BaseModel):
     questions: list[QuestionDraft] = Field(min_length=1, max_length=20)
 
 
+class FactDraft(BaseModel):
+    """A loading-screen fun fact, kept short enough to read in a few seconds."""
+
+    model_config = ConfigDict(extra="forbid")
+    text: str = Field(min_length=15, max_length=160)
+    source_url: str = Field(min_length=10, max_length=1000, pattern=r"^https://")
+    supporting_quote: str = Field(min_length=10, max_length=1000)
+
+
+class FactBatch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    facts: list[FactDraft] = Field(min_length=1, max_length=20)
+
+
 class Observation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     seconds: float = Field(ge=0, le=31)

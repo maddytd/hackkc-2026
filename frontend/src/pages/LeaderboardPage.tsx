@@ -15,8 +15,9 @@ function formatDay(day: string): string {
   });
 }
 
-function tier(index: number): string {
-  return index < 3 ? `lb-row--top${index + 1}` : '';
+// Gold / silver / bronze follow the rank, so tied players share a colour.
+function tier(rank: number): string {
+  return rank <= 3 ? `lb-row--top${rank}` : '';
 }
 
 // Game-style daily leaderboard: slanted rows, top three edged gold/silver/bronze,
@@ -87,7 +88,7 @@ export default function LeaderboardPage({ onBack, day }: { onBack: () => void; d
               {board.entries.map((e, i) => (
                 <li
                   key={`${e.rank}-${e.alias}-${i}`}
-                  className={`lb-row ${tier(i)} ${isMe(e) ? 'is-me' : ''}`}
+                  className={`lb-row ${tier(e.rank)} ${isMe(e) ? 'is-me' : ''}`}
                   style={{ '--i': Math.min(i, 12) } as CSSProperties}
                   aria-label={`Rank ${e.rank}, ${e.alias}, ${fmt(e.final_score)} points`}
                 >

@@ -39,7 +39,7 @@ export default function TopThree({
       ) : (
         <ol>
           {entries.map((e, i) => (
-            <li key={`${e.rank}-${e.alias}-${i}`} className={`menu-top3-row menu-top3-row--${i + 1}`}>
+            <li key={`${e.rank}-${e.alias}-${i}`} className={`menu-top3-row menu-top3-row--${Math.min(e.rank, 4)}`}>
               <span className="menu-top3-rank">{e.rank}</span>
               <span className="menu-top3-alias">{e.alias}</span>
               <span className="menu-top3-score">{e.final_score.toLocaleString()}</span>

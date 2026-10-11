@@ -8,7 +8,8 @@ import type { Attempt } from '../types/game';
 // Results-only images; none of these appear on the title screen.
 const RESULT_SCENES = [
   '/results/what-does-he-even-do.jpg',
-  // To add once saved: '/results/lets-talk.jpg', '/results/one-percent.jpg', '/results/tongue-out.jpg'
+  '/results/lets-talk.jpg',
+  // To add once saved: useless-info, feels-the-larp, no-limit-to-the-larp, one-percent
 ];
 
 export default function ResultsPage({

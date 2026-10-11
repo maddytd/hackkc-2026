@@ -37,11 +37,14 @@ def _classify(error):
     for detail in details:
         if not isinstance(detail, dict):
             continue
-        if detail.get("@type", "").endswith("QuotaFailure"):
-            violations.extend(v for v in detail.get("violations", []) if isinstance(v, dict))
+        kind = str(detail.get("@type", ""))
+        if kind.endswith("QuotaFailure"):
+            found = detail.get("violations")
+            found = found if isinstance(found, list) else []
+            violations.extend(v for v in found if isinstance(v, dict))
         if detail.get("reason") in {"API_KEY_INVALID", "API_KEY_EXPIRED"}:
             invalid_key = True
-        if detail.get("@type", "").endswith("RetryInfo"):
+        if kind.endswith("RetryInfo"):
             value = detail.get("retryDelay", "")
             try:
                 seconds = float(value.removesuffix("s"))

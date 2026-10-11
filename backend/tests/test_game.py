@@ -174,6 +174,17 @@ def test_deadline_and_no_restart(setup):
     assert client.post(f"/attempts/{aid}/replacement", headers=headers).status_code == 409
 
 
+def test_reopening_expired_recording_does_not_offer_another_take(setup):
+    client, settings, headers = setup
+    aid = start(client, headers)["id"]
+    with connect(settings, write=True) as db:
+        db.execute("UPDATE attempts SET deadline=? WHERE id=?", (time.time() - 1, aid))
+    # No worker sweep has run yet.
+    reopened = start(client, headers)
+    assert reopened["id"] == aid
+    assert reopened["status"] == "expired"
+
+
 def test_midnight_keeps_original_competition_day(setup, monkeypatch):
     client, settings, headers = setup
     old = datetime(2026, 10, 10, 23, 59, 55, tzinfo=UTC).timestamp()

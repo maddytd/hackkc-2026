@@ -262,8 +262,17 @@ def start(settings, player_id, day=None):
     # Return an existing attempt without any AI work (so it can be viewed even if AI is down).
     with connect(settings) as db:
         row = _current_attempt(db, player_id, day)
-        if row:
+        if row and not (row["status"] == "recording" and time.time() > row["deadline"]):
             return public(db, row)
+    if row:
+        # The worker may not have swept yet; never hand back a recording that cannot upload.
+        with connect(settings, write=True) as db:
+            db.execute(
+                "UPDATE attempts SET status='expired',failure='Recording was not submitted' "
+                "WHERE id=? AND status='recording'",
+                (row["id"],),
+            )
+            return public(db, owned(db, row["id"], player_id))
     available(settings)
     # Generate + store the day's prompt here, outside the write transaction below.
     ensure_challenge(settings, day)

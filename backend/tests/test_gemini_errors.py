@@ -189,3 +189,16 @@ def test_real_strands_preserves_quota_error(monkeypatch):
         )
     assert classify_gemini_error(caught.value).code == "quota_exhausted"
     assert len(calls) == 1
+
+
+@pytest.mark.parametrize(
+    "detail",
+    [
+        {"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": None},
+        {"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": "many"},
+        {"@type": None, "violations": []},
+    ],
+)
+def test_malformed_quota_details_are_classified_without_crashing(detail):
+    result = classify_gemini_error(provider_error(details=[detail]))
+    assert result.code == "rate_limited"

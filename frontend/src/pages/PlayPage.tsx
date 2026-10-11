@@ -112,6 +112,14 @@ export default function PlayPage({
       } catch (err) {
         setPhase('error');
         const status = err instanceof ApiError ? err.status : undefined;
+        if (status && status !== 401) {
+          // A rejected upload leaves a real attempt behind; show it so TRY AGAIN is offered.
+          const current = await getAttempt(attempt.id).catch(() => null);
+          if (current && TERMINAL.has(current.status)) {
+            onFinish(current, null);
+            return;
+          }
+        }
         onError(err instanceof Error ? err.message : 'Upload failed.', status);
       }
     },

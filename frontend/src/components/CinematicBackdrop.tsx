@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// Title screen scenes, in order ("What did he see?" opens). The results screen has its own set.
+// Title screen scenes. The results screen has its own set.
 const MENU_SCENES = [
   'what-did-he-see',
   'does-he-know',
@@ -10,10 +10,18 @@ const MENU_SCENES = [
   'lying',
   'brains',
   'doomed',
-]
-  .map((name) => `/backgrounds/${name}.jpg`)
-  .concat('/backgrounds/why-is-he-still-talking.webp');
+].map((name) => `/backgrounds/${name}.jpg`);
 const SCENE_MS = 9000;
+
+// Fisher-Yates shuffle, so each visit plays the thumbnails in a fresh random order.
+function shuffled<T>(items: readonly T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
 
 // Flat artwork moves on its own plane over a softer, slower background layer.
 // `sources` swaps in a different image set (e.g. the results screen); defaults to the menu's.
@@ -24,7 +32,8 @@ export default function CinematicBackdrop({
   paused?: boolean;
   sources?: string[];
 }) {
-  const scenes = sources;
+  // Picked once per mount: a new random order every time the screen opens.
+  const [scenes] = useState(() => shuffled(sources));
   const [scene, setScene] = useState(0);
   const [reduced, setReduced] = useState(
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,

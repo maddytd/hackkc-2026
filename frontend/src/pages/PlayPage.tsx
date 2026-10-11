@@ -1,3 +1,4 @@
+import CinematicBackdrop from '../components/CinematicBackdrop';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Mic from '../components/Mic';
 import RecordingTimer from '../components/RecordingTimer';
@@ -196,9 +197,15 @@ export default function PlayPage({
       {phase === 'getready' && <div className="countdown">{count}</div>}
 
       {(phase === 'uploading' || phase === 'processing') && (
-        <div className="overlay-center">
-          <div className="spinner" />
-          <p className="big">{statusText}</p>
+        <div className="scoring-screen">
+          <CinematicBackdrop />
+          <div className="menu-brand" aria-label="Larple">
+            LARPLE<span>DOES HE KNOW?</span>
+          </div>
+          <div className="scoring-status" role="status">
+            <div className="spinner" />
+            <p>{statusText}</p>
+          </div>
         </div>
       )}
     </main>

@@ -13,7 +13,7 @@ class StartAttempt(BaseModel):
 
 class Category(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    rating: int = Field(ge=0, le=10, strict=True)
+    rating: int = Field(ge=0, le=5000, strict=True)
     feedback: str = Field(min_length=1, max_length=1000)
 
 

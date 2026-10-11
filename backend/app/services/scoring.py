@@ -3,7 +3,7 @@ from app.schemas import Judgment
 
 def score(judgment: Judgment):
     points = {
-        name: getattr(judgment, name).rating * 500
+        name: getattr(judgment, name).rating
         for name in ("accuracy", "confidence", "delivery")
     }
     return {

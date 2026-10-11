@@ -32,7 +32,7 @@ const SLOW_SCORING_MS = 45_000;
 
 // Thumbnails behind the uploading/scoring screen. Loading-only; the title screen keeps its own.
 const LOADING_SCENES = [
-  '/loading/huh.jpg',
+  '/loading/huh.gif',
   '/loading/still-talking.jpg',
   '/loading/who-is-that.jpg',
   '/loading/is-he-serious.jpg',

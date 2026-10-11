@@ -54,18 +54,17 @@ pip install -c requirements.lock -e ".[dev]"
 cp .env.example .env          # Windows: copy .env.example .env
 ```
 
-Edit `backend/.env` so it uses demo mode and open registration:
+The copied `backend/.env` defaults to **real Gemini scoring** with the day-switcher on.
 
-```
-LARP_STORAGE_DIR=storage
-LARP_CORS_ORIGINS=["http://localhost:5173"]
-LARP_JUDGE_MODE=demo
-LARP_INVITE_CODE=
-LARP_MAX_UPLOAD_BYTES=12582912
-```
+- **For real AI scoring:** put your own key in `LARP_GEMINI_API_KEY` (from Google AI Studio)
+  and keep `LARP_JUDGE_MODE=gemini`. Confirm `LARP_GEMINI_MODEL` is a video-capable model
+  on your account. Each recording then makes a real Gemini call (uses your tokens).
+- **To run without a key:** set `LARP_JUDGE_MODE=demo` — scoring returns a fixed demo value.
+- `LARP_ALLOW_DAY_OVERRIDE=true` enables the day-switcher (step through days to test different
+  prompts) even in gemini mode. Set it to `false` for a real public game.
 
-> Leave `LARP_INVITE_CODE` **blank** — if it's set, registration will require that code
-> and the sign-up screen (which no longer asks for one) will fail.
+> Leave `LARP_INVITE_CODE` **blank** — if it's set, registration will require that code and
+> the sign-up screen (which no longer asks for one) will fail.
 
 ## 5. Run the three processes
 

@@ -35,9 +35,16 @@ def create_app(settings=None):
         allow_headers=["Authorization", "Content-Type"],
     )
 
+    def day_override_allowed():
+        return settings.judge_mode == "demo" or settings.allow_day_override
+
     @app.get("/health")
     def health():
-        return {"status": "ok", "judge_mode": settings.judge_mode}
+        return {
+            "status": "ok",
+            "judge_mode": settings.judge_mode,
+            "day_override": day_override_allowed(),
+        }
 
     def auth_limit(request):
         ip = request.client.host if request.client else "unknown"
@@ -66,8 +73,8 @@ def create_app(settings=None):
         return {"id": player["id"], "alias": player["alias"]}
 
     def demo_day(day):
-        # Switching days is a demo-only testing aid; real play is always locked to today.
-        return day.isoformat() if (day and settings.judge_mode == "demo") else None
+        # Switching days is a testing aid, gated so real public play stays locked to today.
+        return day.isoformat() if (day and day_override_allowed()) else None
 
     @app.post("/attempts")
     def start(

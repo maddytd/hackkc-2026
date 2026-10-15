@@ -1,6 +1,6 @@
 # Larple backend
 
-FastAPI + SQLite backend for the daily game, with Strands judging in `aws`, legacy `gemini`, or fixed-score `demo` mode. Scores combine accuracy, performed confidence, and delivery equally. Python 3.11+ and FFmpeg (`ffprobe` on PATH) are required.
+FastAPI + SQLite backend for the daily game, with Strands judging in `aws`, legacy `gemini`, or fixed-score `demo` mode. Scores combine accuracy, performed confidence, and delivery, with confidence and delivery weighted double (see `app/services/scoring.py`). Python 3.11+ and FFmpeg (`ffprobe` on PATH) are required.
 
 New days use the niche library. For AWS account setup, Pegasus audiovisual judging, Bedrock accuracy fallback, and offline cheap drafting, see [AWS and Strands rollout](../docs/aws-strands-rollout.md). Gemini-specific instructions below apply only to legacy mode.
 
@@ -99,7 +99,7 @@ Poll the attempt endpoint approximately every two seconds while `queued` or `pro
 
 The judge is a fresh Strands `Agent` for each submission, using `GeminiModel` with the competition day’s saved model and rubric. Gemini is selected explicitly, so AWS credentials and Amazon Bedrock are not required. The agent has no external tools, shared conversation memory, or stdout callback. Its native structured-output call returns the existing `Judgment` schema. A small `VideoGeminiModel` subclass maps MP4/WebM content to Gemini video bytes because some Strands releases omit video handling in the provider; it preserves the video audio track. The adapter also uses Gemini’s `response_json_schema` field so the strict Pydantic schema is accepted without dropping validation rules.
 
-Gemini receives the complete short video, including audio, plus the private question criteria. Its structured response is validated as integer ratings from 0 through 10. The server converts ratings to points and calculates the average. Provider retries are disabled so the persistent worker owns the retry budget; the entire agent call has a 100-second deadline, shorter than the worker lease. Rubric text explicitly treats video content as untrusted and separates accuracy from confidence; this reduces but does not eliminate judge manipulation.
+Gemini receives the complete short video, including audio, plus the private question criteria. Its structured response is validated as integer ratings from 0 through 10. The server converts ratings to points and calculates the weighted final score. Provider retries are disabled so the persistent worker owns the retry budget; the entire agent call has a 100-second deadline, shorter than the worker lease. Rubric text explicitly treats video content as untrusted and separates accuracy from confidence; this reduces but does not eliminate judge manipulation.
 
 `LARP_MAX_DAILY_JOBS` caps accepted jobs by UTC upload date. Legacy judging permits at most three worker calls. AWS separately reserves every model request in SQLite and enforces the saved `LARP_MAX_AI_CALLS_PER_ATTEMPT` budget (default six), including fallback and interrupted requests. Offline draft generation has its own usage outside this gameplay budget. These are usage caps, **not dollar-denominated billing limits**; also set provider quotas and budget alerts. Existing jobs can be processed on later days.
 

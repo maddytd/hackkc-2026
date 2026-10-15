@@ -13,7 +13,8 @@ def test_confident_wrong_answer_scores_independently():
             for name, rating in [("accuracy", 0), ("confidence", 5000), ("delivery", 5000)]
         }
     )
-    assert score(result)["final_score"] == 3333
+    # Confidence and delivery count double: (0 + 2 * 5000 + 2 * 5000) / 5.
+    assert score(result)["final_score"] == 4000
     assert score(result)["accuracy"] == 0
 
 

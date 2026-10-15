@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from app.config import ROOT
 from app.database import connect
 from app.schemas import GeneratedQuestion
+from app.services.scoring import final_score as weighted_final_score
 
 DEMO_SCORES = (
     ("demo-01", "Demo_Avery", 4820, 4610, 4730),
@@ -196,7 +197,9 @@ def set_demo_scores(settings, enabled):
             attempt = db.execute("SELECT 1 FROM attempts WHERE id=?", (attempt_id,)).fetchone()
             if attempt:
                 raise RuntimeError(f"Cannot seed demo score; attempt {attempt_id} already exists")
-            final_score = round((accuracy + confidence + delivery) / 3)
+            final_score = weighted_final_score(
+                {"accuracy": accuracy, "confidence": confidence, "delivery": delivery}
+            )
             feedback = {
                 category: "Fabricated score for the demo leaderboard."
                 for category in ("accuracy", "confidence", "delivery")

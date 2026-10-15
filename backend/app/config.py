@@ -63,7 +63,7 @@ class Settings(BaseSettings):
 
         return json.dumps(
             {
-                "version": 2,
+                "version": 3,
                 "performance_prompt": VIDEO_PROMPT,
                 "accuracy_prompt": ACCURACY_PROMPT,
                 "accuracy": [

@@ -34,7 +34,7 @@ export default function TakeBreakdown({ score, question }: { score: Score; quest
   rows.push(['Accuracy', fmt(score.accuracy)]);
   rows.push(['Confidence', fmt(score.confidence)]);
   rows.push(['Delivery', fmt(score.delivery)]);
-  rows.push(['Split 3 Ways', 'Average']);
+  rows.push(['Weighting', 'Confidence + Delivery x2']);
 
   const stepMs = 110;
   const finalDelay = rows.length * stepMs + 150;

@@ -23,6 +23,7 @@ from strands.models.model import Model
 
 from app.ai.pegasus_output import parse_scoring_response, scoring_request
 from app.ai.recording import pegasus_video_bytes
+from app.ai.speech_metrics import measure
 from app.database import connect
 from app.schemas import AccuracyJudgment, Judgment, PerformanceEvidence
 
@@ -37,7 +38,7 @@ Do not infer internal emotions, personality, honesty, or intelligence from appea
 Do not penalize accents, disability, appearance, or a deliberate dramatic pause by itself.
 Do not judge factual correctness. Do not invent observations when a modality is unavailable.
 
-Rate eight signals, each as an integer from 0 to 100, independently of factual accuracy
+Rate nine signals, each as an integer from 0 to 100, independently of factual accuracy
 and of each other. Use the whole scale: 50 means ordinary, not good, and a performance
 normally differs from signal to signal. Give the exact number the evidence supports rather
 than a round one (62 or 47, not 60 or 50), and never give every signal the same number.
@@ -48,26 +49,35 @@ above 80 only for positive evidence of the signal, such as emphatic wording, str
 emphasis, energy, or purposeful gestures, and above 90 only when that is sustained from
 start to finish.
 
-The confidence signals describe PERFORMED conviction, whether the answer is right or wrong:
+The game is "larping": sounding like an expert whether or not the player is one.
+CONFIDENCE asks "would a listener believe this person knows?" It describes PERFORMED
+expertise and conviction, whether the answer is right or wrong:
+- authority: talks like an expert. Raise it for specific terms, names, numbers,
+  mechanisms, and framing such as "the key thing is" or "what happens is", and for
+  recovering from a stumble without admitting doubt. Lower it for vague, generic wording
+  ("it's kind of a thing where"), for openly admitting ignorance, and for giving up.
 - directness: states the answer straight away and commits to it. Lower it for each hedge
   ("I think", "maybe", "probably", "I guess", "not sure"), for an answer phrased as a
   question, for changing the answer, and for apologising.
 - fluency: speech flows without fillers ("um", "uh"), restarts, repeated words, trailing
   off, or long hesitant pauses before or inside the answer. Lower it for each one heard.
-- voice: a steady, firm, audible voice with emphasis on key words. Lower it for a quiet,
-  wavering, or flat voice and for a rising, unsure pitch.
+- voice: steadiness and firmness only: an audible voice that does not waver, falling
+  (not rising, question-like) pitch at the end of statements.
 - presence: steady engagement with the camera, a settled posture, purposeful gestures.
   Lower it for looking away or down, fidgeting, or covering the face.
 
-The delivery signals describe how well the answer is communicated:
+DELIVERY asks "is this easy and entertaining to watch?" It describes communication and
+showmanship, not conviction; a nervous player can still deliver clearly:
 - clarity: articulation; how easily every word can be understood.
-- pacing: neither rushed nor dragging, with pauses that are placed on purpose.
-- structure: a complete, organised answer. A one-word or very short answer cannot score
-  above 40 here.
-- expression: vocal and facial variety that keeps the answer engaging rather than monotone.
+- pacing: neither rushed nor dragging, with pauses placed on purpose, and good use of the
+  30 seconds rather than stopping after a few words.
+- structure: a complete, organised answer with a clear point. A one-word or very short
+  answer cannot score above 40 here.
+- expression: variety and energy in voice and face that keep the answer engaging rather
+  than monotone. This is about entertainment value, not steadiness.
 
-Each feedback must cite observable evidence, naming the specific hedges, fillers, pauses,
-or emphasis that set its numbers.
+Write each feedback BEFORE its numbers. It must cite observable evidence, naming the
+specific terms, hedges, fillers, pauses, or emphasis that set those numbers.
 Provide at least one visual and one audio observation. Return the requested JSON schema."""
 
 ACCURACY_PROMPT = """Evaluate only factual accuracy in a short spoken quiz answer.
@@ -79,7 +89,10 @@ An empty answer has accuracy 0. Output a 0..10 integer rating and concise factua
 Anchors: 0=no correct relevant answer, 2=very weak, 4=inconsistent, 6=competent,
 8=strong, 10=fully correct. Naming the required answer can earn 10 without extra explanation.
 Audio transcription may misrecognize niche names; do not penalize an obvious phonetic variant.
-Your output must contain only the requested accuracy category."""
+Also set on_topic: true when the player attempts to answer THIS question, even with wrong or
+invented facts (a confident bluff about the question is on topic); false when they talk about
+something unrelated, refuse, or say nothing relevant.
+Your output must contain only on_topic and the requested accuracy category."""
 
 
 class CallBudgetExhausted(RuntimeError):
@@ -327,10 +340,12 @@ async def run_stage(settings, ledger, stage, endpoints, schema, prompt, system_p
 
 
 NO_ANSWER = "No spoken answer was heard, so there was nothing to rate."
+OFF_TOPIC = " The answer didn't address the question, so this score was halved."
 
-# Weights for the 0..100 signals. Camera presence counts least: nearly every webcam
-# recording shows it, so it barely separates one player from another.
-CONFIDENCE_WEIGHTS = {"directness": 3, "fluency": 3, "voice": 3, "presence": 1}
+# Weights for the 0..100 signals. Authority, sounding like an expert, is the heart of
+# larping. Camera presence counts least: nearly every webcam recording shows it, so it
+# barely separates one player from another.
+CONFIDENCE_WEIGHTS = {"authority": 4, "directness": 3, "fluency": 2, "voice": 2, "presence": 1}
 DELIVERY_WEIGHTS = {"clarity": 3, "pacing": 2, "structure": 2, "expression": 3}
 
 
@@ -339,22 +354,46 @@ def weighted_points(signals, weights):
     return round(total * 50 / sum(weights.values()))
 
 
+def apply_transcript_caps(performance):
+    """Counted fillers, hedges, and length cap the signals Pegasus estimates by ear."""
+    metrics = measure(performance.transcript)
+    confidence = performance.confidence.model_copy(
+        update={
+            "fluency": min(performance.confidence.fluency, metrics.fluency_cap),
+            "directness": min(performance.confidence.directness, metrics.directness_cap),
+        }
+    )
+    delivery = performance.delivery.model_copy(
+        update={"structure": min(performance.delivery.structure, metrics.structure_cap)}
+    )
+    return confidence, delivery
+
+
 def combine(performance, accuracy):
     """Join the two agents' ratings on the application's 0..5000 scale."""
+    confidence, delivery = apply_transcript_caps(performance)
     scores = {
         "accuracy": {
             "rating": accuracy.accuracy.rating * 500,
             "feedback": accuracy.accuracy.feedback,
         },
         "confidence": {
-            "rating": weighted_points(performance.confidence, CONFIDENCE_WEIGHTS),
-            "feedback": performance.confidence.feedback,
+            "rating": weighted_points(confidence, CONFIDENCE_WEIGHTS),
+            "feedback": confidence.feedback,
         },
         "delivery": {
-            "rating": weighted_points(performance.delivery, DELIVERY_WEIGHTS),
-            "feedback": performance.delivery.feedback,
+            "rating": weighted_points(delivery, DELIVERY_WEIGHTS),
+            "feedback": delivery.feedback,
         },
     }
+    # Bluffing about the question is the game; confidently talking about something else
+    # would otherwise score well now that accuracy carries less weight.
+    if not accuracy.on_topic:
+        for name in ("confidence", "delivery"):
+            scores[name] = {
+                "rating": scores[name]["rating"] // 2,
+                "feedback": (scores[name]["feedback"] + OFF_TOPIC)[:1000],
+            }
     # Speech models can turn silence into a stray word or two. With no correct content
     # and almost nothing said, there was no performance to reward either.
     if accuracy.accuracy.rating == 0 and len(performance.transcript.split()) < 3:
@@ -365,7 +404,7 @@ def combine(performance, accuracy):
 
 async def _judge_aws(settings, attempt, challenge):
     policy = json.loads(challenge["model"])
-    if policy.get("version") != 2:
+    if policy.get("version") != 3:
         raise ValueError("Unsupported judging policy")
     ledger = RequestLedger(settings, attempt, policy["max_calls"])
     # Only load the private recording if the performance stage is not already cached.
@@ -408,7 +447,7 @@ async def _judge_aws(settings, attempt, challenge):
     result = combine(performance, accuracy)
     result._provenance = {
         "mode": "aws",
-        "policy_version": 2,
+        "policy_version": 3,
         "performance": performance_endpoint,
         "accuracy": accuracy_endpoint,
     }

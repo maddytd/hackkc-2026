@@ -3,7 +3,7 @@
 Guide for coding agents (Codex, Claude, etc.) working in this repo. Read this before changing anything.
 
 ## What this is
-Larple ("does he know?") is a daily video game: everyone gets the same question, records a 30-second answer on camera, and an AI judge (Gemini) scores **accuracy, confidence and delivery** (0–5,000 each; final score is their average). Convincing bluffs can still score. Scores go on a daily leaderboard.
+Larple ("does he know?") is a daily video game: everyone gets the same question, records a 30-second answer on camera, and an AI judge (Gemini) scores **accuracy, confidence and delivery** (0–5,000 each; final score weights confidence and delivery double: `(accuracy + 2×confidence + 2×delivery) / 5`). Convincing bluffs can still score. Scores go on a daily leaderboard.
 
 - `frontend/` — React 19 + Vite + TypeScript, plain CSS (`src/styles.css`). Owned by Anthony.
 - `backend/` — FastAPI API + background AI worker, SQLite. Owned by Maddy. See `backend/README.md`.

@@ -18,6 +18,7 @@ def evidence():
             {"seconds": 3, "channel": "visual", "description": "Gesture toward camera"},
         ],
         "confidence": {
+            "authority": 79,
             "directness": 82,
             "fluency": 77,
             "voice": 80,

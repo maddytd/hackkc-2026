@@ -86,7 +86,7 @@ hackkc-2026/
 | `services/attempts.py` | Enforce daily eligibility, assign questions, and authorize replacements. |
 | `services/media.py` | Validate recordings and prepare supported AI media inputs. |
 | `services/judging.py` | Evaluate accuracy, confidence, and delivery using the private rubric. |
-| `services/scoring.py` | Convert validated ratings into points and calculate the average. |
+| `services/scoring.py` | Convert validated ratings into points and calculate the weighted final score. |
 | `worker.py` | Process persisted jobs, retry judging failures, and delete expired recordings. |
 | `content/questions.json` | Store curated questions, reference answers, and private evaluation criteria. |
 

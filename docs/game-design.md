@@ -40,7 +40,7 @@ A daily leaderboard limits the competition window but does not by itself equaliz
 
 ## AI Scoring System
 
-Preserve three equally weighted categories, each worth up to 5,000 points.
+Three categories, each worth up to 5,000 points. Confidence and delivery, the larping, count twice as much as accuracy in the final score.
 
 ### Accuracy — 5,000 points
 
@@ -50,7 +50,9 @@ A confident bluff may earn confidence and delivery points, but unsupported or in
 
 ### Confidence — 5,000 points
 
-How convincingly does the player present themselves as someone who knows what they are talking about? Assess projected conviction through tone, body language, eye contact, and commitment to the answer. This is the core “larping” dimension.
+How convincingly does the player present themselves as someone who knows what they are talking about? Assess performed authority (specific terminology, names, numbers, expert framing, recovering without admitting doubt), commitment to the answer, a steady voice, and engagement with the camera. This is the core “larping” dimension.
+
+Fillers and hedges are counted in the transcript by the server, not estimated by the video model, and cap the fluency and directness signals.
 
 Judge observable performance rather than claiming to know the player's internal confidence. Acknowledging uncertainty clearly and decisively need not count as weak confidence. Avoid scoring physical appearance or treating a particular accent as evidence of expertise.
 
@@ -62,11 +64,13 @@ Keep this separate from confidence: confidence measures projected conviction; de
 
 ### Final Score
 
-`final_score = round((accuracy + confidence + delivery) / 3)`
+`final_score = round((accuracy + 2 × confidence + 2 × delivery) / 5)`
 
-The maximum final score is **5,000 points**, not 15,000. “Average score” refers only to the average of these three categories. It does not refer to averaging multiple attempts.
+The maximum final score is **5,000 points**, not 15,000. It is a weighted average of the three categories, not an average of multiple attempts.
 
-Strong confidence and delivery can compensate for low accuracy in the overall score. This is intentional: the game rewards how well someone “larps” expertise as well as what they actually know. Keep the three category scores visible so a convincing answer is not mistaken for a factually correct one.
+Strong confidence and delivery can compensate for low accuracy in the overall score. This is intentional: the game is about how well someone “larps” expertise, so a perfect bluff with no correct content can reach 4,000. Keep the three category scores visible so a convincing answer is not mistaken for a factually correct one.
+
+A bluff must still be about the question. The accuracy judge also reports whether the answer is on topic; an off-topic answer has its confidence and delivery halved, so confidently talking about something else is not a winning strategy.
 
 ### Judge Requirements
 

@@ -86,22 +86,24 @@ class AgentCategory(Category):
 Signal = Annotated[int, Field(ge=0, le=100, strict=True)]
 
 
+# Feedback comes first so the model writes its evidence before choosing numbers.
 class ConfidenceSignals(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    feedback: str = Field(min_length=1, max_length=1000)
+    authority: Signal
     directness: Signal
     fluency: Signal
     voice: Signal
     presence: Signal
-    feedback: str = Field(min_length=1, max_length=1000)
 
 
 class DeliverySignals(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    feedback: str = Field(min_length=1, max_length=1000)
     clarity: Signal
     pacing: Signal
     structure: Signal
     expression: Signal
-    feedback: str = Field(min_length=1, max_length=1000)
 
 
 class PerformanceEvidence(BaseModel):
@@ -116,4 +118,6 @@ class PerformanceEvidence(BaseModel):
 
 class AccuracyJudgment(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    # A bluff about the question is the game; talking about something else is not.
+    on_topic: bool
     accuracy: AgentCategory

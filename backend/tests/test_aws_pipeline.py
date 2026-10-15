@@ -8,7 +8,13 @@ import pytest
 from botocore.exceptions import ClientError
 from conftest import start, upload
 
-from app.ai.aws_pipeline import CallBudgetExhausted, RequestLedger, combine
+from app.ai.aws_pipeline import (
+    OFF_TOPIC,
+    CallBudgetExhausted,
+    RequestLedger,
+    apply_transcript_caps,
+    combine,
+)
 from app.ai.client import judge
 from app.database import connect, initialize
 from app.schemas import AccuracyJudgment, PerformanceEvidence
@@ -37,6 +43,7 @@ def performance():
             },
         ],
         "confidence": {
+            "authority": 90,
             "directness": 95,
             "fluency": 85,
             "voice": 90,
@@ -109,10 +116,11 @@ def fake_aws(monkeypatch, *, fail_accuracy=None, video_result=None, video_error=
                                 "toolUse": {
                                     "input": json.dumps(
                                         {
+                                            "on_topic": True,
                                             "accuracy": {
                                                 "rating": 2,
                                                 "feedback": "Most of the required answer is missing.",
-                                            }
+                                            },
                                         }
                                     )
                                 }
@@ -165,8 +173,9 @@ def test_real_strands_pipeline_falls_back_and_keeps_ratings_independent(setup, m
     result = client.get(f"/attempts/{aid}", headers=headers).json()
     assert result["status"] == "completed"
     assert result["score"]["accuracy"] == 1000
-    assert result["score"]["confidence"] == 4500
-    assert result["score"]["delivery"] == 4000
+    assert result["score"]["confidence"] == 4521
+    # A four-word answer caps structure at 40.
+    assert result["score"]["delivery"] == 3650
     assert len(calls) == 3
     with connect(settings) as db:
         assert (
@@ -311,35 +320,59 @@ def test_schema_migration_preserves_existing_competition(setup):
         assert db.execute("SELECT id FROM attempts").fetchone()[0] == first["id"]
 
 
+def accuracy_judgment(rating=10, on_topic=True):
+    return AccuracyJudgment.model_validate(
+        {"on_topic": on_topic, "accuracy": {"rating": rating, "feedback": "Graded."}}
+    )
+
+
 @pytest.mark.parametrize(
-    ("transcript", "accuracy_rating", "expected_confidence"),
+    ("transcript", "accuracy_rating", "on_topic", "expected_confidence", "expected_delivery"),
     [
-        ("", 0, 0),  # silence
-        ("you", 0, 0),  # a stray word invented from silence
-        ("Helium.", 10, 4500),  # a correct one-word answer keeps its performance scores
-        ("It is definitely hydrogen, no doubt.", 0, 4500),  # a real bluff still earns points
+        ("", 0, False, 0, 0),  # silence
+        ("you", 0, False, 0, 0),  # a stray word invented from silence
+        # A correct one-word answer keeps its confidence; structure is capped at 40.
+        ("Helium.", 10, True, 4521, 3650),
+        # A real bluff about the question still earns full performance points.
+        ("It is definitely hydrogen, no doubt about it at all.", 0, True, 4521, 4000),
+        # Confidently talking about something else is halved.
+        ("Let me tell you about my favourite pizza toppings instead.", 0, False, 2260, 2000),
     ],
 )
-def test_silence_earns_nothing_but_a_spoken_bluff_still_scores(
-    transcript, accuracy_rating, expected_confidence
+def test_bluffs_score_but_silence_and_off_topic_answers_do_not(
+    transcript, accuracy_rating, on_topic, expected_confidence, expected_delivery
 ):
     evidence = PerformanceEvidence.model_validate({**performance(), "transcript": transcript})
-    accuracy = AccuracyJudgment.model_validate(
-        {"accuracy": {"rating": accuracy_rating, "feedback": "Graded against the guide."}}
-    )
-    result = combine(evidence, accuracy)
+    result = combine(evidence, accuracy_judgment(accuracy_rating, on_topic))
     assert result.accuracy.rating == accuracy_rating * 500
     assert result.confidence.rating == expected_confidence
-    assert result.delivery.rating == (4000 if expected_confidence else 0)
+    assert result.delivery.rating == expected_delivery
+    if expected_confidence and not on_topic:
+        assert result.confidence.feedback.endswith(OFF_TOPIC)
 
 
 def test_one_weak_signal_moves_the_score_by_its_weight():
-    accuracy = AccuracyJudgment.model_validate({"accuracy": {"rating": 10, "feedback": "Right."}})
     hedged = performance()
     hedged["confidence"]["directness"] = 31
-    result = combine(PerformanceEvidence.model_validate(hedged), accuracy)
-    assert result.confidence.rating == 3540
+    result = combine(PerformanceEvidence.model_validate(hedged), accuracy_judgment())
+    assert result.confidence.rating == 3721
     looked_away = performance()
     looked_away["confidence"]["presence"] = 26
-    result = combine(PerformanceEvidence.model_validate(looked_away), accuracy)
-    assert result.confidence.rating == 4180
+    result = combine(PerformanceEvidence.model_validate(looked_away), accuracy_judgment())
+    assert result.confidence.rating == 4254
+    vague = performance()
+    vague["confidence"]["authority"] = 30
+    result = combine(PerformanceEvidence.model_validate(vague), accuracy_judgment())
+    assert result.confidence.rating == 3521
+
+
+def test_counted_fillers_and_hedges_cap_what_pegasus_heard():
+    evidence = performance()
+    evidence["transcript"] = "Um, I think, uh, maybe it's, um, hydrogen probably, yeah."
+    confidence, _ = apply_transcript_caps(PerformanceEvidence.model_validate(evidence))
+    assert confidence.fluency == 70  # three fillers: 100 - 3 * 10
+    assert confidence.directness == 64  # three hedges: 100 - 3 * 12
+    # Caps never raise a signal Pegasus already rated lower.
+    evidence["confidence"]["fluency"] = 40
+    confidence, _ = apply_transcript_caps(PerformanceEvidence.model_validate(evidence))
+    assert confidence.fluency == 40

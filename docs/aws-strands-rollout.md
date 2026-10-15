@@ -13,7 +13,7 @@ In `LARP_JUDGE_MODE=aws`, the worker uses two fresh Strands agents:
 
 The accuracy agent uses an anchored 0..10 rating. Pegasus rates five confidence signals (authority, directness, fluency, voice, presence) and four delivery signals (clarity, pacing, structure, expression) from 0 to 100. Python caps fluency, directness, and structure using filler, hedge, and word counts from the transcript (`app/ai/speech_metrics.py`), then weights each set into one category score, so similar performances rarely tie. The accuracy agent also reports `on_topic`; off-topic answers have confidence and delivery halved. Both are converted once to the application's 0..5000 category scores. Gemini uses the existing 0..5000 schema. Normal AWS scoring uses two model requests. The optional offline writer uses Nova Micro by default to produce drafts from supplied reference excerpts.
 
-AWS mode needs no Gemini key. Gemini remains a legacy rollout/rollback option; demo remains fixed scoring. The old `app/ai/generator.py` is no longer called by gameplay.
+AWS mode needs no Gemini key. Gemini remains a legacy rollout/rollback option; demo remains fixed scoring.
 
 ## 1. Create an account
 

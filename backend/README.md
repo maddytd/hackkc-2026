@@ -103,7 +103,7 @@ Gemini receives the complete short video, including audio, plus the private ques
 
 `LARP_MAX_DAILY_JOBS` caps accepted jobs by UTC upload date. Legacy judging permits at most three worker calls. AWS separately reserves every model request in SQLite and enforces the saved `LARP_MAX_AI_CALLS_PER_ATTEMPT` budget (default six), including fallback and interrupted requests. Offline draft generation has its own usage outside this gameplay budget. These are usage caps, **not dollar-denominated billing limits**; also set provider quotas and budget alerts. Existing jobs can be processed on later days.
 
-The sample pool uses six comparable interview/opinion questions with explicit evaluation criteria. Add verified reference answers for factual questions. Changes to content or the rubric take effect on the next competition day.
+New days draw from `content/questions_niche.json` (hard, verified niche questions). `content/questions.json` is an easier general-knowledge pool you can switch to with `LARP_QUESTIONS_FILE`. Changes to content or the rubric take effect on the next competition day.
 
 Agent and provider documentation:
 

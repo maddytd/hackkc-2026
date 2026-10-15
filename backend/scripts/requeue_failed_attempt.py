@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def main():
-    root = Path(__file__).resolve().parent
+    root = Path(__file__).resolve().parents[1]
     database = root / "storage-aws-test" / "game.db"
     with sqlite3.connect(database.as_uri() + "?mode=rw", uri=True) as db:
         db.row_factory = sqlite3.Row

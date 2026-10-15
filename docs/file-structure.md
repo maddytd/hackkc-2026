@@ -1,93 +1,56 @@
-# Proposed Repository Structure
-
-This is the target implementation layout. The backend is now implemented; see [backend setup](../backend/README.md). Some backend modules are consolidated in this MVP, and the frontend remains planned.
-
+# Repository Layout
 
 ```text
 hackkc-2026/
-├── README.md
-├── .gitignore
-├── .env.example
+├── README.md, RUN.md, AGENTS.md   # overview, local setup, notes for coding agents
+├── compose.yaml                   # Docker: API + worker only
+├── compose.public.yaml            # Docker: API + worker + website (+ optional public tunnel)
+├── .github/workflows/backend.yml  # CI: backend lint + tests
+├── .vscode/tasks.json             # one-click "Larple: ..." run tasks
 ├── docs/
-│   ├── game-design.md
-│   └── file-structure.md
-├── frontend/
-│   ├── package.json
-│   ├── vite.config.ts
-│   ├── tsconfig.json
-│   ├── index.html
-│   ├── public/
+│   ├── game-design.md             # gameplay, scoring, attempt rules
+│   ├── aws-strands-rollout.md     # AWS account setup and the Pegasus/Bedrock judge
+│   └── file-structure.md          # this file
+├── frontend/                      # React 19 + Vite + TypeScript
+│   ├── public/                    # backgrounds, reaction GIFs, results images
+│   ├── tests/                     # node:test checks and a browser recording harness
 │   └── src/
-│       ├── main.tsx
-│       ├── App.tsx
-│       ├── styles.css
-│       ├── components/
-│       │   ├── CameraPreview.tsx
-│       │   ├── RecordingTimer.tsx
-│       │   ├── QuestionCard.tsx
-│       │   └── ScoreCard.tsx
-│       ├── pages/
-│       │   ├── PlayPage.tsx
-│       │   ├── ResultsPage.tsx
-│       │   └── LeaderboardPage.tsx
-│       ├── hooks/
-│       │   ├── useRecorder.ts
-│       │   └── useAttempt.ts
-│       ├── lib/
-│       │   └── api.ts
-│       └── types/
-│           └── game.ts
-├── backend/
-│   ├── pyproject.toml
-│   ├── .env.example
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── models.py
-│   │   ├── schemas.py
-│   │   ├── dependencies.py
-│   │   ├── routes/
-│   │   │   ├── attempts.py
-│   │   │   └── leaderboard.py
-│   │   ├── services/
-│   │   │   ├── attempts.py
-│   │   │   ├── media.py
-│   │   │   ├── judging.py
-│   │   │   └── scoring.py
-│   │   ├── ai/
-│   │   │   ├── client.py
-│   │   │   └── rubrics/
-│   │   │       └── question_answering_v1.md
-│   │   └── worker.py
-│   ├── content/
-│   │   └── questions.json
-│   ├── migrations/
-│   ├── tests/
-│   │   ├── test_attempts.py
-│   │   ├── test_uploads.py
-│   │   ├── test_scoring.py
-│   │   └── test_leaderboard.py
-│   └── storage/                 # Gitignored local runtime data
-│       ├── game.db
-│       └── recordings/
-└── tests/
-    └── e2e/
-        └── daily-game.spec.ts
+│       ├── App.tsx                # screen state machine (start → auth → play → results)
+│       ├── components/            # StartScreen, AuthScreen, TakeBreakdown, TopThree, ...
+│       ├── pages/                 # PlayPage, ResultsPage, LeaderboardPage
+│       ├── hooks/                 # useWebcam, useRecorder
+│       ├── lib/                   # api client (with mock mode), recording storage, fun facts
+│       ├── types/game.ts          # shared types matching the backend API
+│       └── styles.css
+└── backend/                       # FastAPI + SQLite + background judging worker
+    ├── app/
+    │   ├── main.py                # HTTP routes
+    │   ├── config.py              # settings (LARP_* env vars) and the daily judging policy
+    │   ├── database.py            # SQLite schema and migrations
+    │   ├── auth.py                # accounts and sessions
+    │   ├── schemas.py             # request and judgment models
+    │   ├── worker.py              # job queue: judging, retries, recording cleanup
+    │   ├── services/
+    │   │   ├── attempts.py        # daily eligibility, questions, replacements, demo seeding
+    │   │   ├── media.py           # upload validation (ffprobe)
+    │   │   └── scoring.py         # weighted final score
+    │   └── ai/
+    │       ├── client.py          # picks the judge for the day's mode (demo, gemini, aws)
+    │       ├── aws_pipeline.py    # Strands workflow: Pegasus performance + Bedrock accuracy
+    │       ├── pegasus_output.py  # Pegasus JSON request/response handling
+    │       ├── speech_metrics.py  # filler/hedge counts from the transcript
+    │       ├── recording.py       # ffmpeg conversion for Pegasus
+    │       ├── video_model.py     # Gemini video adapter (legacy mode)
+    │       ├── gemini_errors.py   # Gemini error classification (legacy mode)
+    │       ├── question_library.py# offline question drafting and approval CLI
+    │       └── rubrics/           # rubric text saved with each competition day
+    ├── content/
+    │   ├── questions_niche.json   # default question pool
+    │   ├── questions.json         # easier general-knowledge pool (LARP_QUESTIONS_FILE)
+    │   └── source_packet.example.json
+    ├── scripts/                   # local AWS testing helpers (see scripts/README.md)
+    ├── tests/                     # pytest suite
+    └── storage/                   # gitignored runtime data: game.db, recordings/
 ```
-
-### Key Responsibilities
-
-| File | Responsibility |
-|---|---|
-| `QuestionCard.tsx` | Display the assigned question and its public context. |
-| `useRecorder.ts` | Handle device permissions, recording format selection, capture, and camera cleanup. |
-| `useAttempt.ts` | Manage upload UI, processing status, and refresh recovery. |
-| `services/attempts.py` | Enforce daily eligibility, assign questions, and authorize replacements. |
-| `services/media.py` | Validate recordings and prepare supported AI media inputs. |
-| `services/judging.py` | Evaluate accuracy, confidence, and delivery using the private rubric. |
-| `services/scoring.py` | Convert validated ratings into points and calculate the weighted final score. |
-| `worker.py` | Process persisted jobs, retry judging failures, and delete expired recordings. |
-| `content/questions.json` | Store curated questions, reference answers, and private evaluation criteria. |
 
 Keep reference answers, private judging guides, and AI credentials on the backend. Only send the question's public fields to the browser before judging. The backend remains authoritative for attempt eligibility, replacement questions, and leaderboard scores.

@@ -31,7 +31,7 @@ def main():
         "--no-schema", action="store_true", help="Keep the scoring prompt but omit responseFormat"
     )
     args = parser.parse_args()
-    database = Path(__file__).resolve().parent / "storage-aws-test" / "game.db"
+    database = Path(__file__).resolve().parents[1] / "storage-aws-test" / "game.db"
     with sqlite3.connect(database.as_uri() + "?mode=ro", uri=True) as db:
         db.row_factory = sqlite3.Row
         row = db.execute(

@@ -7,7 +7,7 @@ Larple ("does he know?") is a daily video game: everyone gets the same question,
 
 - `frontend/` — React 19 + Vite + TypeScript, plain CSS (`src/styles.css`). Owned by Anthony.
 - `backend/` — FastAPI API + background AI worker, SQLite. Owned by Maddy. See `backend/README.md`.
-- `docs/` — game design and (older, planned) file structure. `RUN.md` — full local setup.
+- `docs/` — game design, AWS judging setup, and the repository layout. `RUN.md` — full local setup.
 
 ## Ground rules
 - **Frontend changes only, unless explicitly asked.** Don't modify `backend/`.

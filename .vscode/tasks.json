@@ -2,32 +2,32 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Larple: Unmerged AWS API",
+      "label": "Larple: AWS API",
       "type": "shell",
       "command": "powershell.exe",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/backend/run_unmerged_test.ps1", "-Service", "api"],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/backend/scripts/run_aws_local.ps1", "-Service", "api"],
       "isBackground": true,
       "problemMatcher": []
     },
     {
-      "label": "Larple: Unmerged AWS worker",
+      "label": "Larple: AWS worker",
       "type": "shell",
       "command": "powershell.exe",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/backend/run_unmerged_test.ps1", "-Service", "worker"],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/backend/scripts/run_aws_local.ps1", "-Service", "worker"],
       "isBackground": true,
       "problemMatcher": []
     },
     {
-      "label": "Larple: Unmerged AWS frontend",
+      "label": "Larple: AWS frontend",
       "type": "shell",
       "command": "powershell.exe",
-      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/backend/run_unmerged_test.ps1", "-Service", "frontend"],
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/backend/scripts/run_aws_local.ps1", "-Service", "frontend"],
       "isBackground": true,
       "problemMatcher": []
     },
     {
-      "label": "Larple: Test unmerged AWS stack",
-      "dependsOn": ["Larple: Unmerged AWS API", "Larple: Unmerged AWS worker", "Larple: Unmerged AWS frontend"],
+      "label": "Larple: AWS test stack",
+      "dependsOn": ["Larple: AWS API", "Larple: AWS worker", "Larple: AWS frontend"],
       "dependsOrder": "parallel",
       "problemMatcher": []
     },

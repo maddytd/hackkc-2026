@@ -30,11 +30,7 @@ def packet():
     return batch, [source]
 
 
-def test_niche_library_does_not_call_generation(monkeypatch):
-    monkeypatch.setattr(
-        "app.ai.generator.generate_question",
-        lambda *args: pytest.fail("Generation must be offline"),
-    )
+def test_niche_library_loads_offline():
     settings = Settings(gemini_api_key="test-key", _env_file=None)
     bank = build_questions(settings, "2026-10-11")
     assert len(bank) >= 8

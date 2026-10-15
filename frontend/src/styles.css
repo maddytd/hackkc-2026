@@ -1610,69 +1610,6 @@ body {
   pointer-events: none;
 }
 
-.score-card {
-  width: 100%;
-  display: grid;
-  gap: 16px;
-}
-
-.final {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-}
-
-.final-num {
-  font-family: 'Anton', sans-serif;
-  font-size: clamp(3rem, 14vw, 5.5rem);
-  color: #fff;
-  -webkit-text-stroke: 3px #000;
-  paint-order: stroke fill;
-}
-
-.final-max {
-  font-family: 'Anton', sans-serif;
-  color: var(--muted);
-}
-
-.score-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 16px;
-  text-align: left;
-}
-
-.score-row {
-  display: flex;
-  justify-content: space-between;
-  font-family: 'Anton', sans-serif;
-  letter-spacing: 0.02em;
-  margin-bottom: 6px;
-}
-
-.score-bar {
-  height: 12px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 2px solid #000;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.score-fill {
-  height: 100%;
-  background: var(--yellow);
-}
-
-.score-feedback {
-  margin: 6px 0 0;
-  font-family: system-ui, sans-serif;
-  font-size: 0.9rem;
-  color: var(--muted);
-}
-
 .results-buttons {
   display: flex;
   flex-wrap: wrap;

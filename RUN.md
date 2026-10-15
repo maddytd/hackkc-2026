@@ -20,8 +20,6 @@ git clone https://github.com/maddytd/hackkc-2026.git
 cd hackkc-2026
 ```
 
-If this isn't merged to `main` yet, also run: `git checkout frontend`
-
 ## 3. Open in VS Code with split terminals
 
 ```sh
